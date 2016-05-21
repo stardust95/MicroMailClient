@@ -11,6 +11,8 @@ public:
         SMTP, POP3, IMAP
     };
 
+
+
 };
 
 #endif // UTILS_H

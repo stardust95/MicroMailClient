@@ -21,4 +21,5 @@ HEADERS += \
     Model/Attachment.h \
     Model/MailClient.h \
     Model/MailBody.h \
-    Model/Utils.h
+    Model/Utils.h \
+    Model/MailListModel.h
