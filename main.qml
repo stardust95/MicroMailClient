@@ -185,6 +185,7 @@ ApplicationWindow {
             section.delegate: mailListSectionDelegate
         }
 
+/* 测试单个Mail访问
         ListView{
             width: 100
             height: 100
@@ -205,7 +206,7 @@ ApplicationWindow {
 
             }
         }
-
+*/
 
 
 /*
@@ -236,6 +237,7 @@ ApplicationWindow {
                 backgroundColor: selectedIndex == index ? "silver" : "white"
 
                 onClicked: {
+                    // update isread
                     selectedIndex = index;
                 }
 

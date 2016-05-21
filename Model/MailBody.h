@@ -25,7 +25,7 @@ private:
 
     Q_PROPERTY(QDateTime datetime READ GetDateTime CONSTANT)
 
-    Q_PROPERTY(bool isread READ GetIsread CONSTANT)
+    Q_PROPERTY(bool isread READ GetIsread WRITE SetIsread)
 
 //    Q_PROPERTY(QList<QString> recipients READ GetRecipient CONSTANT)
 
@@ -33,9 +33,10 @@ private:
 public:
 
 
-    MailBody(QString _s = "subject", QString _c="content"){
+    MailBody(QString _s = "subject", QString _c="content", bool _r = false  ){
         subject = _s;
         content = _c;
+        isread = _r;
     }
 
     QString GetSubject(){
@@ -56,6 +57,10 @@ public:
 
     bool GetIsread(){
         return isread;
+    }
+
+    void SetIsread(bool val){
+        isread = val;
     }
 
     QList<QString> GetRecipients(){
