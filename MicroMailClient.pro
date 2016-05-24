@@ -19,9 +19,9 @@ RESOURCES += qml.qrc
 
 POCOHOME = "E:\Libs\poco-1.7.3"
 
-INCLUDEPATH += "$${POCOHOME}\Foundation\include" "C:\OpenSSL\include" "$${POCOHOME}\Crypto\include" "$${POCOHOME}\NetSSL_OpenSSL\include" "$${POCOHOME}\Net\include"
+INCLUDEPATH += "E:\oopProject\pocolib-all\include"
 
-LIBS += -L"E:\Libs\poco-1.7.3\lib"
+LIBS += -L"E:\oopProject\pocolib-all\lib"
 
 # Default rules for deployment.
 
