@@ -1,10 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>MainForm.ui.qml</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="envelop">icons/envelope_polygon.svg</file>
+        <file alias="add">icons/add.svg</file>
         <file alias="menu">icons/menu.svg</file>
         <file alias="person">icons/person.svg</file>
         <file alias="person_add">icons/person_add.svg</file>

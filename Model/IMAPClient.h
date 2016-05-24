@@ -1,16 +1,55 @@
-#ifndef IMAPCLIENTSESSION_H
-#define IMAPCLIENTSESSION_H
+#ifndef IMAPCLIENT_H
+#define IMAPCLIENT_H
 
-using namespace Poco::Net;
+#include <QDateTime>
 
+#include <string>
+#include <vector>
 
-class IMAPClientSession{
-	
+#include "Account.h"
+#include "IMAPClientSession.h"
+
+typedef std::vector<Poco::Net::IMAPClientSession::FolderInfo> FolderInfoVec;
+
+class IMAPClient : public ReceiveMailClient {
 public:
-	IMAPClientSession(){
+
+    IMAPClient(string host, int port)
+		: _session(host, port) {
+		
+    }
+	
+	bool login(string _user, string _passwd){
+		
+		try{
+			_session.login(_user, _passwd);
+		
+			FolderInfoVec folders;
+			
+			_session.listFolders("", folders);		// root is null
+			
+			for ( auto folder : folders ){
+				
+			}
+		}
+		catch(Poco::Net::IMAPException & e){
+			
+
+
+		}
+		
+		
 		
 	}
+
+private:
+
+    QDateTime _loginTime;
+
+    bool _requireSSL;
+	
+	IMAPClientSession _session;
+	
 };
 
-#endif // IMAPCLIENTSESSION_H
-
+#endif // IMAPCLIENT_H

@@ -85,11 +85,32 @@ namespace Models{
                 }
         }
 
+
+        bool setData(const QModelIndex &index, const QVariant &value, int role) {
+
+            if (index.row() >= 0 && index.row() < this->_items.size()){
+                qDebug() << "set data at " << index << " : " << role << "\n";
+
+                switch (role) {
+                case mail_isread:
+                    this->_items.at (index.row ())->SetIsread (value.toBool ());
+                    break;
+                default:
+                    break;
+                }
+
+                emit(dataChanged (index, index));           // 刷新qml的数据关键函数
+                return true;
+            }
+
+            return false;
+        }
+
 //        QVariant headerData(int section, Qt::Orientation orientation, int role) const{
 
 //        }
 
-        void BuildMailList(const MAILBODY_PTR_QLIST & items){
+        void buildMailList(const MAILBODY_PTR_QLIST & items){
             if ( items.size () == 0 )
                 return;
             this->beginInsertRows (QModelIndex(), this->rowCount (), this->rowCount () + items.size () - 1);
@@ -103,11 +124,15 @@ namespace Models{
         }
 
 
-        MAILBODY_PTR_QLIST ToList() const{
+
+
+        MAILBODY_PTR_QLIST toList() const{
             return this->_items;
         }
 
-        Q_INVOKABLE QVariant Get(int index){
+//        Q_INVOKABLE QString getMailCo
+
+        Q_INVOKABLE QVariant get(int index){
             if( index >= 0 && index < _items.size () ){
 //                qDebug() << "Model data index = " << index << "," << index << " : " << role << "\n";
                 return QVariant::fromValue(_items.at (index));
@@ -115,6 +140,8 @@ namespace Models{
 
             return QVariant();
         }
+
+
 
     private:
 

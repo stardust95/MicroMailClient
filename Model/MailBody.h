@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include <QVariant>
 #include<QSharedPointer>
+#include<QDebug>
 
 #include <string>
 
@@ -25,7 +26,7 @@ private:
 
     Q_PROPERTY(QDateTime datetime READ GetDateTime CONSTANT)
 
-    Q_PROPERTY(bool isread READ GetIsread WRITE SetIsread)
+    Q_PROPERTY(bool isread READ GetIsread WRITE SetIsread CONSTANT)
 
 //    Q_PROPERTY(QList<QString> recipients READ GetRecipient CONSTANT)
 
@@ -61,6 +62,8 @@ public:
 
     void SetIsread(bool val){
         isread = val;
+//        qDebug() << "SetIsread: emit dataChanged()";
+//        emit(dataChanged ());
     }
 
     QList<QString> GetRecipients(){
@@ -86,7 +89,6 @@ private:
     bool isread;
 
 //    QVector<Attachment> attachements;
-
 
 };
 
