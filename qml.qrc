@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>MyButton.qml</file>
     </qresource>
     <qresource prefix="/icons">
         <file alias="add">icons/add.svg</file>
@@ -10,5 +11,42 @@
         <file alias="refresh">icons/refresh.svg</file>
         <file alias="search">icons/search.svg</file>
         <file alias="select">icons/select_all.svg</file>
+        <file alias="add_box">icons/add_box.svg</file>
+        <file alias="add_circle">icons/add_circle.svg</file>
+        <file>icons/add_circle_outline.svg</file>
+        <file alias="archive">icons/archive.svg</file>
+        <file alias="backspace">icons/backspace.svg</file>
+        <file alias="block">icons/block.svg</file>
+        <file alias="clear">icons/clear.svg</file>
+        <file alias="copy">icons/content_copy.svg</file>
+        <file alias="cut">icons/content_cut.svg</file>
+        <file alias="paste">icons/content_paste.svg</file>
+        <file alias="create">icons/create.svg</file>
+        <file alias="draft">icons/drafts.svg</file>
+        <file>icons/filter_list.svg</file>
+        <file alias="flag">icons/flag.svg</file>
+        <file alias="font">icons/font_download.svg</file>
+        <file alias="forward">icons/forward.svg</file>
+        <file alias="gesture">icons/gesture.svg</file>
+        <file alias="inbox">icons/inbox.svg</file>
+        <file alias="link">icons/link.svg</file>
+        <file alias="mail">icons/mail.svg</file>
+        <file alias="mail_unread">icons/markunread.svg</file>
+        <file>icons/move_to_inbox.svg</file>
+        <file>icons/next_week.svg</file>
+        <file alias="redo">icons/redo.svg</file>
+        <file>icons/remove.svg</file>
+        <file>icons/remove_circle.svg</file>
+        <file>icons/remove_circle_outline.svg</file>
+        <file alias="reply">icons/reply.svg</file>
+        <file alias="reply_all">icons/reply_all.svg</file>
+        <file alias="report">icons/report.svg</file>
+        <file alias="save">icons/save.svg</file>
+        <file alias="send">icons/send.svg</file>
+        <file>icons/sort.svg</file>
+        <file>icons/text_format.svg</file>
+        <file>icons/unarchive.svg</file>
+        <file alias="undo">icons/undo.svg</file>
+        <file>icons/weekend.svg</file>
     </qresource>
 </RCC>

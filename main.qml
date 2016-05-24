@@ -23,7 +23,7 @@ ApplicationWindow {
 
     theme {
         primaryColor: "blue"
-        accentColor: "gray"
+        accentColor: "red"
         primaryDarkColor: "gray"
         tabHighlightColor: "Zwhite"
     }
@@ -62,59 +62,30 @@ ApplicationWindow {
                     source: "/icons/menu"
                     scale: iconScale
                 }
-
                 onClicked:  menuSidebar.expanded = !menuSidebar.expanded
             }
 
-            Button{
+            MyButton{
                 Layout.fillWidth: true
-                Image{
-                    source: "/icons/add"
-                    scale: iconScale
-                }
-                Label{
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left
-                    anchors.leftMargin: 50
-                    text: "New Mail"
-                }
-                onClicked: {
+                source: "/icons/add"
+                label:  "New Mail"
 
-                }
             }
 
-            Button{
+            MyButton{
                 Layout.fillWidth: true
-                Image{
-                    source: "/icons/person"
-                    scale: iconScale
-                }
-                Label{
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left
-                    anchors.leftMargin: 50
-                    text: "Accounts"
-                }
-                onClicked: {
+                source: "/icons/person"
+                label: "Accounts"
 
-                }
             }
-            Button{
+
+            MyButton{
                 Layout.fillWidth: true
-                Image{
-                    source: "/icons/person_add"
-                    scale: iconScale
-                }
-                Label{
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left
-                    anchors.leftMargin: 50
-                    text: "Add Account"
-                }
-                onClicked: {
-
-                }
+                source: "/icons/person_add"
+                label: "Add Account"
             }
+
+
 
         }
 
@@ -254,7 +225,6 @@ ApplicationWindow {
                     }
                 }
             }
-
             section.property: "mail_subject"        // should be datetime
             section.criteria: ViewSection.FullString
             section.delegate: mailListSectionDelegate
@@ -304,7 +274,6 @@ ApplicationWindow {
                     selectedIndex = index;
                     console.log(mailListModel.get(index).subject);
                     mailWebView.loadHtml(mailListModel.get(index).subject);
-
                 }
 
                Rectangle{
@@ -359,29 +328,102 @@ ApplicationWindow {
         color: Theme.backgroundColor
 
         ColumnLayout{
-            spacing: 2
+            spacing: 8
 
             anchors.fill: parent
             anchors.margins: 10
+            anchors.topMargin: 0
 
             RowLayout{
                 id : mailViewToolBar
 
+                height: 60
 
+                spacing: 0
+
+                anchors.top : parent.top
+
+                anchors.right: parent.right
+
+                Layout.fillWidth : true
+
+//                layoutDirection: Qt.RightToLeft
+
+                MyButton{
+                    id : markAsUnreadButton
+                    label : "Mark As Unread"
+                    source: "/icons/mail_unread"
+                    Layout.preferredWidth: label.length*8 + 60
+                }
+
+                MyButton{
+                    id : replyButton
+                    label: "Reply"
+                    source: "/icons/reply"
+                    Layout.preferredWidth: label.length*8 + 60
+
+                }
+
+                MyButton{
+                    id : replyAllButton
+                    label: "Reply All"
+                    source: "/icons/reply_all"
+                    Layout.preferredWidth: label.length*8 + 60
+                }
 
             }
 
+            RowLayout{
+                id: mailHeaderView
 
+                height: mailViewToolBar.height
 
-            Rectangle{
+                spacing: 10
 
+                Rectangle{
+                    height: parent.height / 2
+                    width: height
+                    radius: height/2
+                    color: theme.accentColor
+                    Label{
+                        anchors.centerIn: parent
+                        text: "C"
+                    }
+                }
+
+                ColumnLayout{
+                    spacing: 2
+                    Label  {
+                        id : mailHeaderSender
+                        text : "CodinGame"
+                        font.bold: true
+                        font.pixelSize: 20
+                    }
+
+                    Label {
+                        id : mailHeaderDatetime
+                        text : "5/23/2016 22:55"
+                        font.pixelSize: 13
+                    }
+                }
+
+            }
+
+            Label {
+                text : "Learn new algorithms & tricks"
+            }
+
+            Label{
+                text : "To: pb375670450@gmail.com"
             }
 
             WebEngineView{
 
                 id: mailWebView
+
+                Layout.fillHeight: true
+                Layout.fillWidth: true
                 url: "https://www.baidu.com/"
-                anchors.fill: parent
                 onLoadProgressChanged: console.log(mailWebView.loadProgress)
 
             }
