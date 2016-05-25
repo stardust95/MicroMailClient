@@ -18,56 +18,70 @@ class MailBody : public QObject {
 private:
     Q_OBJECT
 
-    Q_PROPERTY(QString subject READ GetSubject CONSTANT)
+    Q_PROPERTY(QString subject READ getSubject CONSTANT)
 
-    Q_PROPERTY(QString content READ GetContent CONSTANT)
+    Q_PROPERTY(QString content READ getContent CONSTANT)
 
-    Q_PROPERTY(QString sender READ GetSender CONSTANT)
+    Q_PROPERTY(QString sender READ getSender CONSTANT)
 
-    Q_PROPERTY(QDateTime datetime READ GetDateTime CONSTANT)
+    Q_PROPERTY(QDateTime datetime READ getDateTime CONSTANT)
 
-    Q_PROPERTY(bool isread READ GetIsread WRITE SetIsread CONSTANT)
+    Q_PROPERTY(bool isread READ getIsread WRITE setIsread CONSTANT)
 
-//    Q_PROPERTY(QList<QString> recipients READ GetRecipient CONSTANT)
+//    Q_PROPERTY(QList<QString> recipients READ getRecipient CONSTANT)
 
 
 public:
 
-
     MailBody(QString _s = "subject", QString _c="content", bool _r = false  ){
-        subject = _s;
-        content = _c;
-        isread = _r;
+        _subject = _s;
+        _content = _c;
+        _isread = _r;
     }
 
-    QString GetSubject(){
-        return subject;
+    QString getSubject(){
+        return _subject;
     }
 
-    QString GetContent(){
-        return content;
+    void setSubject(QString s){
+        _subject = s;
     }
 
-    QString GetSender(){
-        return sender;
+    QString getContent(){
+        return _content;
     }
 
-    QDateTime GetDateTime(){
-        return datetime;
+    void setContent(QString c){
+        _content = c;
     }
 
-    bool GetIsread(){
-        return isread;
+    QString getSender(){
+        return _sender;
     }
 
-    void SetIsread(bool val){
-        isread = val;
-//        qDebug() << "SetIsread: emit dataChanged()";
-//        emit(dataChanged ());
+    void setSender(QString s){
+        _sender = s;
     }
 
-    QList<QString> GetRecipients(){
-        return recipients;
+    QDateTime getDateTime(){
+        return _datetime;
+    }
+
+    bool getIsread(){
+        return _isread;
+    }
+
+    void setIsread(bool val){
+        _isread = val;
+    }
+
+    QList<QString> getRecipients(){
+        return _recipients;
+    }
+
+    void addRecipient(QString r)
+{
+        _recipients.push_back (r);
     }
 
 //    QVector<Attachment> GetAttachements(){
@@ -76,19 +90,19 @@ public:
 
 private:
 
-    QString subject;
+    QString _subject;
 
-    QString content;
+    QString _content;
 
-    QString sender;
+    QString _sender;
 
-    QDateTime datetime;
+    QDateTime _datetime;
 
-    QList<QString> recipients;
+    QList<QString> _recipients;
 
-    bool isread;
+    bool _isread;
 
-//    QVector<Attachment> attachements;
+//    QVector<Attachment> _attachements;
 
 };
 

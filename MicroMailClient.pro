@@ -17,11 +17,11 @@ RESOURCES += qml.qrc
 # Additional import path used to resolve QML modules in Qt Creator's code model
 #QML_IMPORT_PATH =
 
-POCOHOME = "E:\Libs\poco-1.7.3"
+POCOHOME = "C:\Users\37567\Documents\Visual Studio 2015\Projects\MicroMailClient-QT\PocoLib"
 
-INCLUDEPATH += "$${POCOHOME}\Foundation\include" "C:\OpenSSL\include" "$${POCOHOME}\Crypto\include" "$${POCOHOME}\NetSSL_OpenSSL\include" "$${POCOHOME}\Net\include"
+INCLUDEPATH += "$${POCOHOME}\include"
 
-LIBS += -L"E:\Libs\poco-1.7.3\lib"
+LIBS += -L"$${POCOHOME}\lib"
 
 # Default rules for deployment.
 

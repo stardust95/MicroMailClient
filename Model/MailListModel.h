@@ -12,7 +12,8 @@
 #include <QDebug>
 
 #include "MailBody.h"
-
+#include "IMAPClient.h"
+#include "Utils.h"
 
 namespace Models{
 
@@ -21,7 +22,7 @@ namespace Models{
     public:
 
         explicit MailListModel(QObject * parent = 0) : QAbstractListModel(parent) {
-
+            _receiveProtocol = Utils::ProtocolType::IMAP;
         }
 
         ~MailListModel(){
@@ -54,7 +55,7 @@ namespace Models{
 
 
         int rowCount(const QModelIndex & parent = QModelIndex()) const{
-            return _items.size ();
+            return _mails.size ();
         }
 
         int columnCount(const QModelIndex & parent = QModelIndex()) const{
@@ -66,20 +67,20 @@ namespace Models{
             if( !index.isValid () )
                 return QVariant();
 //            qDebug() << "Model data index = " << index.row () << "," << index.column () << " : " << role << "\n";
-            auto item = _items.at(index.row());
+            auto item = _mails.at(index.row());
             switch( role ){
                 case mail_content:
-                    return item->GetContent ();
+                    return item->getContent ();
                 case mail_datetime:
-                    return item->GetDateTime ();
+                    return item->getDateTime ();
                 case mail_isread:
-                    return item->GetIsread();
+                    return item->getIsread();
 //                case mail_recipients:
 //                    return item->recipients.at (0);
                 case mail_sender:
-                    return item->GetSender ();
+                    return item->getSender ();
                 case mail_subject:
-                    return item->GetSubject ();
+                    return item->getSubject ();
                 default:
                     return QVariant();
                 }
@@ -88,18 +89,18 @@ namespace Models{
 
         bool setData(const QModelIndex &index, const QVariant &value, int role) {
 
-            if (index.row() >= 0 && index.row() < this->_items.size()){
+            if (index.row() >= 0 && index.row() < this->_mails.size()){
                 qDebug() << "set data at " << index << " : " << role << "\n";
 
                 switch (role) {
                 case mail_isread:
-                    this->_items.at (index.row ())->SetIsread (value.toBool ());
+                    this->_mails.at (index.row ())->setIsread (value.toBool ());
                     break;
                 default:
                     break;
                 }
 
-                emit(dataChanged (index, index));           // åˆ·æ–°qmlçš„æ•°æ®å…³é”®å‡½æ•°
+                emit(dataChanged (index, index));           // Ë¢ÐÂqmlµÄÊý¾Ý¹Ø¼üº¯Êý
                 return true;
             }
 
@@ -110,42 +111,83 @@ namespace Models{
 
 //        }
 
-        void buildMailList(const MAILBODY_PTR_QLIST & items){
-            if ( items.size () == 0 )
-                return;
-            this->beginInsertRows (QModelIndex(), this->rowCount (), this->rowCount () + items.size () - 1);
+         void buildMailList(const MAILBODY_PTR_QLIST & items){          // only for debug
+             if ( items.size () == 0 )
+                 return;
+             this->beginInsertRows (QModelIndex(), this->rowCount (), this->rowCount () + items.size () - 1);
 
-            foreach (auto item, items) {
-                this->_items.append (item);
-            }
+             foreach (auto item, items) {
+                 this->_mails.append (item);
+             }
 
-            this->endInsertRows ();
+             this->endInsertRows ();
 
-        }
+         }
 
+         QList<QString> getFolders( ){
+             return _foldersMap.keys ();
+         }
 
-
-
-        MAILBODY_PTR_QLIST toList() const{
-            return this->_items;
+        MAILBODY_PTR_QLIST toList(QString folder) const{
+            return this->_mails;
         }
 
 //        Q_INVOKABLE QString getMailCo
 
         Q_INVOKABLE QVariant get(int index){
-            if( index >= 0 && index < _items.size () ){
+            if( index >= 0 && index < _mails.size () ){
 //                qDebug() << "Model data index = " << index << "," << index << " : " << role << "\n";
-                return QVariant::fromValue(_items.at (index));
+                return QVariant::fromValue(_mails.at (index));
             }
 
             return QVariant();
         }
+        Q_INVOKABLE bool login(QString user, QString passwd, QString host, QString port){
+/*
+        Login and retrive all mails within folders.
+*/
+            if( _receiveProtocol == Utils::ProtocolType::IMAP )
+                _receiveClient = QSharedPointer<IMAPClient>::create(host, port);
+            // _sendClient = MAILCLIENT_PTR::create(host, port);
 
+            if( _receiveClient->login(user, passwd) ){          // if login success, retrive mails
+//            if( _sendClient->login (user, passwd) && _receiveClient->login (user,  passwd) ){
 
+                // First get mails
+                QList<QString> folders;
+                _receiveClient->getFolders (folders);          // Assume that POP3 only has one folder "INBOX"
+                for(auto folder : folders){
+                    int cur_count = _mails.length ();
+                    QList<int> indexs;
+                    _receiveClient->getMailBodies (folder, _mails);
+
+                    while( ++cur_count < _mails.length () ){
+                        indexs.push_back (cur_count);
+                    }
+
+                    _foldersMap[folder] = indexs;
+                }
+
+                // Then initialize the user info
+                _user = ACCOUNT_PTR::create();
+                return true;
+            }
+            return false;
+        }
 
     private:
 
-        MAILBODY_PTR_QLIST _items;
+        MAILBODY_PTR_QLIST _mails;
+
+        ACCOUNT_PTR _user;
+
+        QMap<QString, QList<int>> _foldersMap;
+
+        MAILCLIENT_PTR _sendClient;
+
+        MAILCLIENT_PTR _receiveClient;
+
+        Utils::ProtocolType _receiveProtocol;
 
     };
 
