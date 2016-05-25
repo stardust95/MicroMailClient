@@ -35,4 +35,6 @@ HEADERS += \
     Model/MailClient.h \
     Model/MailListModel.h \
     Model/Utils.h \
-    Model/IMAPClientSession.h
+    Model/IMAPClientSession.h \
+    Model/ReceiveMailClient.h \
+    Model/SendMailClient.h

@@ -8,7 +8,7 @@
 #include <QString>
 #include <QDateTime>
 
-class ReceiveMailClient : MailClient{
+class ReceiveMailClient : public MailClient{
 
 public:
 

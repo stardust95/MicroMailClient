@@ -9,14 +9,15 @@
 #include <vector>
 
 #include "Account.h"
-#include "MailClient.h"
+#include "ReceiveMailClient.h"
 #include "IMAPClientSession.h"
 #include "MailBody.h"
 #include "Attachment.h"
 
+
 typedef std::vector<Poco::Net::IMAPClientSession::FolderInfo> FolderInfoVec;
 
-class IMAPClient : public MailClient
+class IMAPClient : public ReceiveMailClient
 {
 private:
     typedef QSharedPointer<Poco::Net::IMAPClientSession> SESSION_PTR;
@@ -81,6 +82,18 @@ public:
 
         }
 
+    }
+
+    void DeleteMail (const QList<int> & ids){
+
+    }
+
+    void setTimeout (int val){
+
+    }
+
+    int getTimeout (){
+        return _session->socket ().getReceiveTimeout ().totalMilliseconds ();
     }
 
     ~IMAPClient(){

@@ -13,6 +13,8 @@
 
 #include "MailBody.h"
 #include "IMAPClient.h"
+#include "ReceiveMailClient.h"
+#include "SendMailClient.h"
 #include "Utils.h"
 
 namespace Models{
@@ -183,9 +185,9 @@ namespace Models{
 
         QMap<QString, QList<int>> _foldersMap;
 
-        MAILCLIENT_PTR _sendClient;
+        SENDMAILCLIENT_PTR _sendClient;
 
-        MAILCLIENT_PTR _receiveClient;
+        RECEIVEMAILCLIENT_PTR _receiveClient;
 
         Utils::ProtocolType _receiveProtocol;
 

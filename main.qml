@@ -52,7 +52,7 @@ ApplicationWindow {
 
         ColumnLayout{
             anchors.fill: parent
-            spacing: 2
+            spacing: Units.dp(2)
 
             width: parent.width
 
@@ -95,7 +95,7 @@ ApplicationWindow {
 
         id: thinMenuSidebar             // 小的侧边栏
 
-        width: menuSidebar.expanded ? 0 : 35
+        width: menuSidebar.expanded ? 0 : Units.dp(35)
 
         color: Theme.backgroundColor
 
@@ -104,7 +104,7 @@ ApplicationWindow {
         border.color: "black"
 
         Column {
-            spacing: 10
+            spacing: Units.dp(10)
 
             anchors.fill : parent
 
