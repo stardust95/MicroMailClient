@@ -20,10 +20,10 @@ public:
 
         virtual bool login(QString, QString) = 0;
 
-        virtual void getFolders(QList<QString> & ) = 0;
-
-        virtual void getMailBodies(const QString & , QList<MAILBODY_PTR> & ) = 0;   // DO NOT CLEAR the list in this function
-
+		virtual int getTimeout() = 0;
+		
+		virtual void setTimeout(int) = 0;
+		
 //       virtual ~MailClient() = 0;
 
 protected:
@@ -32,7 +32,6 @@ protected:
         QString _port;
         QDateTime _loginTime;
         bool _requireSSL;
-
 
 };
 
