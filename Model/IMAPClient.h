@@ -43,7 +43,7 @@ public:
 		
     }
 
-    void getFolders(QList<QString> & _folders) override{
+    int getFolders(QList<QString> & _folders) override{
 
         FolderInfoVec folders;
 
@@ -53,46 +53,71 @@ public:
             _folders.push_back (QString::fromUtf8 (f.name.c_str()));
         }
 
+        return folders.size ();
     }
 
-    void getMailBodies(const QString & folder, QList<MAILBODY_PTR> & result) override{
+    int selectFolder(const QString & folder) override{
 
-        Poco::Net::IMAPClientSession::MessageInfoVec msgs;
+        _mailList.clear ();
 
         std::vector<std::string> uids;
 
+        _selectedFolder = folder;
+
         _session->listMessages (folder.toStdString (), uids);
 
-        _session->getMessages (folder.toStdString (), uids, msgs);
+        _session->getMessages (folder.toStdString (), uids, _mailList);
+
+        qDebug() << "In select Folder, folder = "<< folder << ", mailList.size = " << _mailList.size () << "uids.size = " << uids.size ()<< "\n";
+
+        _curListIndex = 0;
+
+        return uids.size ();
+
+    }
+
+    int getMailBodies(QList<MAILBODY_PTR> & result, int count ) override{
 
         std::string msg;
 
-        for ( auto info : msgs) {
+        int counter = 0;
 
-            _session->loadMessage (folder.toStdString (), info, msg);
+        qDebug() << "listIndex = " <<_curListIndex << ", mailList.size=" << _mailList.size () << "\n";
+
+        for( ; _curListIndex < _mailList.size (); _curListIndex++, counter++) {
+
+            if( counter >= count )
+                break;
+
+            auto info = _mailList.at (_curListIndex);
+
+            _session->loadMessage (_selectedFolder.toStdString (), info, msg);
 
             MAILBODY_PTR newmail = MAILBODY_PTR::create(QString::fromUtf8 (info.subject.c_str ()));
 
             newmail->setContent (QString::fromUtf8 (msg.c_str ()));
             newmail->setSender (QString::fromUtf8 (info.from.c_str()));
             newmail->addRecipient (QString::fromUtf8 (info.to.c_str()));
+            newmail->setDateTime (QString::fromUtf8 (info.date.c_str()));
             newmail->setIsread (false);
 
             result.push_back (newmail);
-
         }
 
-    }
-
-    void DeleteMail (const QList<int> & ids){
+        return counter;
 
     }
 
-    void setTimeout (int val){
-
+    int DeleteMail (const QList<int> & ids) override{
+        return 0;
     }
 
-    int getTimeout (){
+    void setTimeout (int val) override{
+        _session->socket ().setReceiveTimeout (val);
+        _session->socket ().setSendTimeout (val);
+    }
+
+    int getTimeout () override{
         return _session->socket ().getReceiveTimeout ().totalMilliseconds ();
     }
 
@@ -101,6 +126,9 @@ public:
     }
 
 private:
+
+
+    Poco::Net::IMAPClientSession::MessageInfoVec _mailList;
 
      SESSION_PTR _session;
 	

@@ -15,17 +15,23 @@ ApplicationWindow {
 
     property bool isLargeWindow: width > Screen.desktopAvailableWidth/2
 
-    property int selectedIndex: 0
+    property int selectedIndex: -1
+
+    property int selectedFolder: 0
 
     property string globalBackgroundColor: "whitesmoke"
 
     property double iconScale: 0.8
+
+    property string contentFont: "微软雅黑"
+
 
     theme {
         primaryColor: "blue"
         accentColor: "red"
         primaryDarkColor: "gray"
         tabHighlightColor: "Zwhite"
+
     }
 
     MouseArea{
@@ -85,8 +91,6 @@ ApplicationWindow {
                 label: "Add Account"
             }
 
-
-
         }
 
     }
@@ -133,11 +137,13 @@ ApplicationWindow {
 
         anchors.left: thinMenuSidebar.right
 
-        anchors.leftMargin: 4
+        anchors.leftMargin: Units.dp(4)
 
-        width: isLargeWindow ? 400 : parent.width - thinMenuSidebar.width
+        width: isLargeWindow ? Units.dp(400) : parent.width - thinMenuSidebar.width
 
         height: parent.height
+
+        color: Theme.backgroundColor
 
         ListView{
 
@@ -153,7 +159,7 @@ ApplicationWindow {
 
             header : Rectangle{
                 id: mailListHeader
-                height: 35
+                height: Units.dp(35)
                 width: mailListView.width
 
                 Rectangle{
@@ -163,7 +169,6 @@ ApplicationWindow {
                     color: globalBackgroundColor
                     border.color: searchTextField.activeFocus ? "lightgray" : color
 
-
                     TextField{
 
                         id: searchTextField
@@ -171,7 +176,7 @@ ApplicationWindow {
                         height: mailListHeader.height
                         anchors.right: searchButton.left
                         width: parent.width - searchButton.width
-                        font.pointSize: 12
+                        font.pointSize: Units.dp(14)
                         font.bold: false
                         font.family: "微软雅黑"
 
@@ -180,25 +185,24 @@ ApplicationWindow {
                     Button{
                         id : searchButton
                         anchors.right: parent.right
-                        width: 40
+                        width: Units.dp(40)
 
                         Image{
                             scale: iconScale
                             id : searchButtonImage
                             anchors.fill: parent
-                            anchors.margins: 4
+                            anchors.margins: Units.dp(4)
                             source: "/icons/search"
                         }
                     }
 
                 }
 
-
                 Rectangle{
                     id: mailListHeaderButtonRectangle
                     anchors.left: searchTextRectangle.right
                     height: mailListHeader.height
-                    width: 80
+                    width: Units.dp(80)
 
                     color: globalBackgroundColor
 
@@ -208,9 +212,11 @@ ApplicationWindow {
                         Image{
                             scale: iconScale
                             anchors.fill: parent
-                            anchors.margins: 4
+                            anchors.margins: Units.dp(4)
                             source: "/icons/refresh"
                         }
+                        onClicked: mailListModel.begin()
+
                     }
                     Button{
                         anchors.left: refreshButton.right
@@ -219,13 +225,29 @@ ApplicationWindow {
                         Image{
                             scale: iconScale
                             anchors.fill: parent
-                            anchors.margins: 4
+                            anchors.margins: Units.dp(4)
                             source: "/icons/select"
                         }
                     }
                 }
+
+                    ProgressBar{
+
+                        id: mailListProgressBar
+                        width: parent.width
+                        anchors.top: parent.bottom
+
+                        value: mailListModel.progress
+
+                        onValueChanged: console.log("valueChanged:"+value)
+
+                    }
+
             }
-            section.property: "mail_subject"        // should be datetime
+
+
+
+            section.property: "mail_datetime"        // should be datetime
             section.criteria: ViewSection.FullString
             section.delegate: mailListSectionDelegate
         }
@@ -238,11 +260,11 @@ ApplicationWindow {
             id: mailListSectionDelegate
             ListItem.Subheader{
                 backgroundColor: Theme.backgroundColor
-                height: 40
+                height: Units.dp(40)
                 Label{
                     anchors.verticalCenter: parent.verticalCenter
                     text: section
-                    font.pixelSize: 14
+                    font.pixelSize: Units.dp(14)
                 }
                 ThinDivider{
                     anchors {
@@ -252,10 +274,7 @@ ApplicationWindow {
                     }
                     visible: true
                 }
-
             }
-
-
         }
 
         Component{
@@ -265,41 +284,42 @@ ApplicationWindow {
                 id: mailListItem
 
                 width: mailListColumn.width
-                height: 100
+                height: Units.dp(100)
 
                 backgroundColor: selectedIndex == index ? "silver" : globalBackgroundColor
 
                 onClicked: {
                     model.mail_isread = true;           // update isread
                     selectedIndex = index;
-                    console.log(mailListModel.get(index).subject);
-                    mailWebView.loadHtml(mailListModel.get(index).subject);
+                    console.log(mailListModel.getDateTime(index));
+                    mailWebView.loadHtml(mailListModel.getContent(index));
                 }
 
                Rectangle{
                    id: isreadRectangle
                    height: parent.height
 
-                   width: 5
+                   width: Units.dp(5)
                    color: model.mail_isread ? mailListItem.backgroundColor : "green"
                }
 
                 Label{
                     id: mailTitle
                     anchors.left: isreadRectangle.right
-                    anchors.margins: 5
+                    anchors.margins: Units.dp(5)
                     text: model.mail_subject
                     font.bold: true
-                    font.pixelSize: 20
+                    font.pixelSize: Units.dp(20)
                 }
 
                 Label{
                     anchors.top: mailTitle.bottom
                     anchors.left: mailTitle.left
-                    anchors.margins: 5
+                    anchors.margins: Units.dp(5)
 
                     id: mailContent
-                    text:model.mail_content
+                    text: model.mail_content.substr(0, 10)
+                    font.family: contentFont
                 }
 
                 ThinDivider{
@@ -313,124 +333,126 @@ ApplicationWindow {
 
             }
         }
-
     }
 
     Rectangle{
-        id: mailView
 
-        anchors.left: mailListColumn.right
+            id: mailView
 
-        height: parent.height
+            anchors.left: mailListColumn.right
 
-        width: parent.width - mailListColumn.x - mailListColumn.width       // How to simplify?
+            height: parent.height
 
-        color: Theme.backgroundColor
+            width: parent.width - mailListColumn.x - mailListColumn.width       // How to simplify?
 
-        ColumnLayout{
-            spacing: 8
+//            color: Theme.backgroundColor
 
-            anchors.fill: parent
-            anchors.margins: 10
-            anchors.topMargin: 0
+            ColumnLayout{
 
-            RowLayout{
-                id : mailViewToolBar
+                spacing: Units.dp(8)
 
-                height: 60
+                anchors.fill: parent
+                anchors.margins: Units.dp(10)
+                anchors.topMargin: 0
 
-                spacing: 0
+                visible: selectedIndex >= 0
 
-                anchors.top : parent.top
+                RowLayout{
+                    id : mailViewToolBar
 
-                anchors.right: parent.right
+                    height: Units.dp(60)
 
-                Layout.fillWidth : true
+                    spacing: 0
 
-//                layoutDirection: Qt.RightToLeft
+                    anchors.top : parent.top
 
-                MyButton{
-                    id : markAsUnreadButton
-                    label : "Mark As Unread"
-                    source: "/icons/mail_unread"
-                    Layout.preferredWidth: label.length*8 + 60
-                }
+                    anchors.right: parent.right
 
-                MyButton{
-                    id : replyButton
-                    label: "Reply"
-                    source: "/icons/reply"
-                    Layout.preferredWidth: label.length*8 + 60
+                    Layout.fillWidth : true
 
-                }
-
-                MyButton{
-                    id : replyAllButton
-                    label: "Reply All"
-                    source: "/icons/reply_all"
-                    Layout.preferredWidth: label.length*8 + 60
-                }
-
-            }
-
-            RowLayout{
-                id: mailHeaderView
-
-                height: mailViewToolBar.height
-
-                spacing: 10
-
-                Rectangle{
-                    height: parent.height / 2
-                    width: height
-                    radius: height/2
-                    color: theme.accentColor
-                    Label{
-                        anchors.centerIn: parent
-                        text: "C"
-                    }
-                }
-
-                ColumnLayout{
-                    spacing: 2
-                    Label  {
-                        id : mailHeaderSender
-                        text : "CodinGame"
-                        font.bold: true
-                        font.pixelSize: 20
+                    MyButton{
+                        id : markAsUnreadButton
+                        label : "Mark As Unread"
+                        source: "/icons/mail_unread"
+                        Layout.preferredWidth: Units.dp(label.length*8 + 60)
                     }
 
-                    Label {
-                        id : mailHeaderDatetime
-                        text : "5/23/2016 22:55"
-                        font.pixelSize: 13
+                    MyButton{
+                        id : replyButton
+                        label: "Reply"
+                        source: "/icons/reply"
+                        Layout.preferredWidth: Units.dp(label.length*8 + 60)
+
                     }
+
+                    MyButton{
+                        id : replyAllButton
+                        label: "Reply All"
+                        source: "/icons/reply_all"
+                        Layout.preferredWidth: Units.dp(label.length*8 + 60)
+                    }
+
                 }
 
+                RowLayout{
+                    id: mailHeaderView
+
+                    height: mailViewToolBar.height
+
+                    spacing: Units.dp(10)
+
+                    Rectangle{
+                        height: parent.height / 2
+                        width: height
+                        radius: height/2
+                        color: theme.accentColor
+                        Label{
+                            anchors.centerIn: parent
+                            text: mailHeaderSender.text.charAt(0)
+                        }
+                    }
+
+                    ColumnLayout{
+                        spacing: Units.dp(2)
+                        Label  {
+                            id : mailHeaderSender
+                            text : mailListModel.getSender(selectedIndex)
+                            font.bold: true
+                            font.pixelSize: Units.dp(20)
+                        }
+
+                        Label {
+                            id : mailHeaderDatetime
+                            text : mailListModel.getDateTime(selectedIndex)
+                            font.pixelSize: Units.dp(13)
+                        }
+                    }
+
+                }
+
+                Label {
+                    text : mailListModel.getSubject(selectedIndex);
+                }
+
+                Label{
+                    text : mailListModel.getRecipients(selectedIndex);
+                }
+
+                WebEngineView{
+
+                    id: mailWebView
+
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+//                    url: "https://www.baidu.com/"
+                    url: ""
+                    onLoadProgressChanged: console.log(mailWebView.loadProgress)
+
+                }
             }
 
-            Label {
-                text : "Learn new algorithms & tricks"
-            }
 
-            Label{
-                text : "To: pb375670450@gmail.com"
-            }
-
-            WebEngineView{
-
-                id: mailWebView
-
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                url: "https://www.baidu.com/"
-                onLoadProgressChanged: console.log(mailWebView.loadProgress)
-
-            }
         }
-
-
-    }
 
 
 }

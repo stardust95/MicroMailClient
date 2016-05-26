@@ -12,13 +12,23 @@ class ReceiveMailClient : public MailClient{
 
 public:
 
-        virtual void getFolders(QList<QString> & ) = 0;
+        virtual int getFolders(QList<QString> & ) = 0;
 
-        virtual void getMailBodies(const QString & , QList<MAILBODY_PTR> & ) = 0;   // DO NOT CLEAR the list in this function
+        virtual int getMailBodies(QList<MAILBODY_PTR> & , int count) = 0;   // DO NOT CLEAR the list in this function
 
-		virtual void DeleteMail(const QList<int> &) = 0;
+        virtual int DeleteMail(const QList<int> &) = 0;
 		
+        virtual int selectFolder(const QString & ) = 0;
+
+        virtual QString getSelectedFolder() final {           // final ==> cannot be override
+            return _selectedFolder;
+        }
+
 protected:
+
+    int _curListIndex;
+
+    QString _selectedFolder;
 
 };
 

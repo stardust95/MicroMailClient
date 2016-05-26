@@ -175,9 +175,9 @@ namespace Poco {
             NumberFormatter::append0(tag, _tag++, 10);
 
             _socket.sendMessage(tag + " " + command);
-
+#ifdef _DEBUG
             std::cout << tag + " " + command << std::endl;
-
+#endif
             while (true) {
                 _socket.receiveMessage(response);
                 if (response.substr(0, tag.length()+1) != (tag+" ")) {
@@ -228,7 +228,7 @@ namespace Poco {
 
             if (!sendCommand(oss.str(), response, data))  throw NetException("Cannot fetch messages", response);
 
-            sendCommand("CLOSE", response2, data2);
+//            sendCommand("CLOSE", response2, data2);
 
             for (int j = 0; j < data.size(); j++)
             {
@@ -326,13 +326,15 @@ namespace Poco {
 
             loadText (info.uid, info.parts, "", message);
 
-            sendCommand ("CLOSE", response, data1);
+//            sendCommand ("CLOSE", response, data1);
 
             if ( data.size ( ) <= 2 ) return;
 
             for ( int i = 1; i < data.size ( ) - 2; i++ ) {
-                message += data[i];
-                message += "\r\n";
+                if( data[i].length() > 0 && data[i][0] != '*' ){
+                    message += data[i];
+                    message += "\r\n";
+                }
             }
         }
 
@@ -369,7 +371,11 @@ namespace Poco {
                     }
 
                 } else {
-                    std::cout << "UNKNONW CONTENT TRANSFER TYPE" << std::endl;
+                    std::cout << "UNKNONW CONTENT TRANSFER TYPE: " ;
+                    for(auto s : attrs){
+                        std::cout << s << ";";
+                    }
+                    std::cout << std::endl;
                     text += ss.str ( );
                     //throw NetException ("UNKNOWN CONTENT TRANSFER TYPE");
                 }
@@ -408,7 +414,7 @@ namespace Poco {
             if (!sendCommand(oss.str(), response, data)) throw NetException("Cannot fetch messages", response);
 
             response1.clear(); data1.clear();
-            if (!sendCommand("CLOSE", response1, data1)) throw NetException("Cannot close folder", response);
+//            if (!sendCommand("CLOSE", response1, data1)) throw NetException("Cannot close folder", response);
 
             for (int j = 0; j < data.size(); j++)
             {

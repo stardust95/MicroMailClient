@@ -1,3 +1,4 @@
+//#undef _DEBUG
 #include "Model/MailBody.h"
 #include "Model/Utils.h"
 #include "Model/MailListModel.h"
@@ -19,20 +20,22 @@
 
 using namespace std;
 
+
+
+QString host = "imap.qq.com";
+
+QString user = "375670450@qq.com";
+
+QString passwd = "sftkpahwbroabhjg";
+
+
 void test(){
     //cout << test << endl;
-
-    string host = "imap.qq.com";
-
-    string user = "375670450@qq.com";
-
-    string passwd = "sftkpahwbroabhjg";
-
-    Poco::Net::IMAPClientSession imap (host);
+    Poco::Net::IMAPClientSession imap (host.toStdString ());
 
     //cin >> passwd;
 
-    imap.login (user, passwd);
+    imap.login (user.toStdString (), passwd.toStdString ());
 
     ofstream output ("output.txt");
 
@@ -80,10 +83,12 @@ int main(int argc, char *argv[])
 
     MAILBODY_PTR_QLIST list;
 
-    for(int i=1; i<=10; i++)
-        list.push_back (MAILBODY_PTR::create("Subject" + QString::number (i)));
+//    model.login (user, passwd, host, "143");
 
-    model.buildMailList (list);
+//    for(int i=1; i<=10; i++)
+//        list.push_back (MAILBODY_PTR::create("Subject" + QString::number (i)));
+
+//    model.buildMailList (list);
 
     engine.rootContext ()->setContextProperty("mailListModel", &model);
 

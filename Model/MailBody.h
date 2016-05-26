@@ -9,6 +9,7 @@
 #include<QSharedPointer>
 #include<QDebug>
 
+#include <iostream>
 #include <string>
 
 
@@ -24,7 +25,7 @@ private:
 
     Q_PROPERTY(QString sender READ getSender CONSTANT)
 
-    Q_PROPERTY(QDateTime datetime READ getDateTime CONSTANT)
+    Q_PROPERTY(QString datetime READ getDateTime CONSTANT)
 
     Q_PROPERTY(bool isread READ getIsread WRITE setIsread CONSTANT)
 
@@ -63,8 +64,13 @@ public:
         _sender = s;
     }
 
-    QDateTime getDateTime(){
+    QString getDateTime(){
         return _datetime;
+    }
+
+    void setDateTime(QString val){
+        _datetime = val;
+//        _datetime = QDateTime::fromString (val, Qt::RFC2822Date);
     }
 
     bool getIsread(){
@@ -79,8 +85,7 @@ public:
         return _recipients;
     }
 
-    void addRecipient(QString r)
-{
+    void addRecipient(QString r) {
         _recipients.push_back (r);
     }
 
@@ -96,7 +101,7 @@ private:
 
     QString _sender;
 
-    QDateTime _datetime;
+    QString _datetime;
 
     QList<QString> _recipients;
 
