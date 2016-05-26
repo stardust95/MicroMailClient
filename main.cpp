@@ -26,7 +26,7 @@ QString host = "imap.qq.com";
 
 QString user = "375670450@qq.com";
 
-QString passwd = "sftkpahwbroabhjg";
+QString passwd = "";
 
 
 void test(){

@@ -247,7 +247,7 @@ namespace Models{
 
             QString user = "375670450@qq.com";
 
-            QString passwd = "sftkpahwbroabhjg";
+            QString passwd = "";
 
                this->login (user, passwd, host, "143");
 
