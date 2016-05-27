@@ -6,10 +6,9 @@ class MailReceiveException: public MailClientException
 {
 public:
     MailReceiveException() {}
-    MailReceiveException(string exc): MailClientException(exc.c_str()) {}
-    virtual ~MailReceiveException() {
-        MailClientException::~MailClientException();
-    }
+    MailReceiveException(const string& exc): MailClientException(exc.c_str()) {}
+    MailClientException(const MailClientException& mce): MailClientException(mce) {}
+    ~MailReceiveException() override {}
     const char* what() const override{
         string tmp = MailClientException::what();
         tmp = "MailGenerationException: " + tmp;

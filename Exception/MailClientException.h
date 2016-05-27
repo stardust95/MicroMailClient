@@ -9,16 +9,12 @@ class MailClientException: public exception
 {
 public:
     MailClientException() {}
-    MailClientException(string exc): exception(exc.c_str()) {}
-    virtual ~MailClientException() {
-        exception::~exception();
-    }
-    const char* what() const override{
-        string tmp = exception::what();
-        tmp = "MailClientException: " + tmp;
-        return tmp.c_str();
-    }
+    MailClientException(const string& exc): exception(exc.c_str()) {}
+    MailClientException(const MailClientException& mce): exception(mce) {}
+    virtual ~MailClientException() throw() = 0;
+    virtual const char* what() const = 0;
 };
 
+MailClientException::~exception() {}
 
 #endif // MAILCLIENTEXCEPTION_H
