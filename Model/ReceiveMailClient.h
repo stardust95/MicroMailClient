@@ -5,6 +5,7 @@
 #include "MailBody.h"
 
 #include <QSharedPointer>
+#include <QMap>
 #include <QString>
 #include <QDateTime>
 

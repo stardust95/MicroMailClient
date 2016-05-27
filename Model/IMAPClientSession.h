@@ -57,7 +57,7 @@ namespace Poco {
                 std::string flags;
                 PartInfo    parts;
 
-
+                std::string htmlText;
                 std::string text;
 
                 bool        seen;
@@ -94,8 +94,9 @@ namespace Poco {
             virtual void copyMessage (const std::string& uid, const std::string& from_folder, const std::string& to_folder);
             virtual void moveMessage (const std::string& uid, const std::string& from_folder, const std::string& to_folder);
             virtual void deleteMessage (const std::string& uid, const std::string& folder, bool expunge = true);
-            virtual void loadMessage (const std::string & folder, const MessageInfo & info, std::string & message);
-            virtual void loadText (const std::string & uid, const PartInfo & info, const std::string & index, std::string & text);
+            virtual void loadMessage (const std::string & folder, MessageInfo & info);
+            virtual void loadText (const std::string & uid, const PartInfo & info, const std::string & index, const std::string & type, std::string & text);
+            virtual void loadParts (const std::string & uid, const PartInfo & info, const std::string & index, const std::string & type, std::vector<std::string> & paths);
 
             virtual void createFolder (const std::string& folder);
             virtual void deleteFolder (const std::string& folder);

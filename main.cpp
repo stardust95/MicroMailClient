@@ -61,7 +61,7 @@ void test(){
                 //continue;
 
             cout << info.subject << endl;
-            imap.loadMessage (fd.name, info, msg);
+            imap.loadMessage (fd.name, info);
             output << msg << endl << "===============" << endl;
         }
         break;

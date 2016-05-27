@@ -22,7 +22,7 @@ public:
 
 		virtual int getTimeout() = 0;
 		
-		virtual void setTimeout(int) = 0;
+        virtual void setTimeout(int)     = 0;
 		
 //       virtual ~MailClient() = 0;
 

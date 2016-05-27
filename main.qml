@@ -5,7 +5,6 @@ import Material 0.2
 import Material.ListItems 0.1 as ListItem
 import QtWebEngine 1.2
 
-
 ApplicationWindow {
     id : mainWindow
 
@@ -15,16 +14,25 @@ ApplicationWindow {
 
     property bool isLargeWindow: width > Screen.desktopAvailableWidth/2
 
-    property int selectedIndex: -1
+    property int selectedMailIndex: -1
 
     property int selectedFolder: 0
 
     property string globalBackgroundColor: "whitesmoke"
 
+    property string sidebarColor: Palette.colors["blue"]["200"]
+
     property double iconScale: 0.8
 
     property string contentFont: "微软雅黑"
 
+    property string host : "imap.qq.com";
+
+    property string user : "375670450@qq.com";
+
+    property string passwd : "sftkpahwbroabhjg";
+
+    property string port: "143"
 
     theme {
         primaryColor: "blue"
@@ -35,6 +43,7 @@ ApplicationWindow {
     }
 
     MouseArea{
+
         anchors.fill: parent
         property variant previousPosition
         onPressed: {
@@ -53,8 +62,10 @@ ApplicationWindow {
 
     Sidebar{
         id: menuSidebar  // 完整的侧边栏
-        backgroundColor: Theme.backgroundColor
         expanded: true
+        width: Units.dp(200)
+
+        backgroundColor: sidebarColor
 
         ColumnLayout{
             anchors.fill: parent
@@ -72,6 +83,7 @@ ApplicationWindow {
             }
 
             MyButton{
+                id: newMailButton
                 Layout.fillWidth: true
                 source: "/icons/add"
                 label:  "New Mail"
@@ -91,6 +103,91 @@ ApplicationWindow {
                 label: "Add Account"
             }
 
+            ListItem.SectionHeader{
+                id: foldersSectionHeader
+
+                Layout.fillWidth: true
+
+                RowLayout{
+
+                    Image {
+                        id: foldersImage
+                        scale: iconScale
+                    }
+
+                    Label{
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Folders"
+                    }
+
+                }
+
+                state: "open"
+                expanded: true
+
+                states:[
+                    State{
+                        name: "open"
+                        PropertyChanges {
+                            target: foldersImage
+                            source: "/icons/folder_open"
+                        }
+                    },
+
+                    State{
+                        name: "close"
+                        PropertyChanges {
+                            target: foldersImage
+                            source: "/icons/folder"
+                        }
+                    }
+
+                ]
+
+                onClicked: {
+                    state == "close" ? state = "open" : state = "close";
+
+                }
+
+            }
+
+            ColumnLayout {
+                anchors.top: foldersSectionHeader.bottom
+                width:  foldersSectionHeader.width
+
+                Repeater{
+                    id: foldersList
+
+                    model: mailListModel.folders
+//                    model: temp
+                    Layout.fillWidth: true
+                    delegate: foldersListDelegate
+                    onModelChanged: console.log("model = " + model)
+                }
+
+            }
+
+            Component{
+                id: foldersListDelegate
+                ListItem.Standard{
+                    width: foldersSectionHeader.width
+                    visible: { foldersSectionHeader.expanded }
+
+//                    backgroundColor: mailListModel.folderIndex == index ?
+
+
+                    Label{
+                        text: model.modelData
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: Units.dp(10)
+                        font.pixelSize: Units.dp(13)
+                    }
+                    onVisibleChanged: console.log("listitem visible changed: " + visible)
+                    onClicked: mailListModel.buildMailList(index)
+                }
+            }
+
         }
 
     }
@@ -101,11 +198,11 @@ ApplicationWindow {
 
         width: menuSidebar.expanded ? 0 : Units.dp(35)
 
-        color: Theme.backgroundColor
+        height: parent.height
+
+        color: sidebarColor
 
         anchors.left: menuSidebar.right
-
-        border.color: "black"
 
         Column {
             spacing: Units.dp(10)
@@ -121,10 +218,12 @@ ApplicationWindow {
                     anchors.fill: parent
                     source: "/icons/menu"
                 }
+
                 onClicked: {
                     menuSidebar.expanded = !menuSidebar.expanded
                 }
             }
+
         }
 
     }
@@ -178,7 +277,7 @@ ApplicationWindow {
                         width: parent.width - searchButton.width
                         font.pointSize: Units.dp(14)
                         font.bold: false
-                        font.family: "微软雅黑"
+                        font.family: contentFont
 
                     }
 
@@ -193,6 +292,7 @@ ApplicationWindow {
                             anchors.fill: parent
                             anchors.margins: Units.dp(4)
                             source: "/icons/search"
+
                         }
                     }
 
@@ -215,7 +315,7 @@ ApplicationWindow {
                             anchors.margins: Units.dp(4)
                             source: "/icons/refresh"
                         }
-                        onClicked: mailListModel.begin()
+                        onClicked: mailListModel.login(user, passwd, host, port)
 
                     }
                     Button{
@@ -231,27 +331,24 @@ ApplicationWindow {
                     }
                 }
 
-                    ProgressBar{
+                ProgressBar{
 
-                        id: mailListProgressBar
-                        width: parent.width
-                        anchors.top: parent.bottom
+                    id: mailListProgressBar
+                    width: parent.width
+                    anchors.bottom : parent.bottom
 
-                        value: mailListModel.progress
+                    value: mailListModel.progress
 
-                        onValueChanged: console.log("valueChanged:"+value)
+//                    onValueChanged: console.log("valueChanged:"+value)
 
-                    }
+                }
 
             }
-
-
 
             section.property: "mail_datetime"        // should be datetime
             section.criteria: ViewSection.FullString
             section.delegate: mailListSectionDelegate
         }
-
 
 /*
     Invisible Components of mailListColumn
@@ -286,13 +383,12 @@ ApplicationWindow {
                 width: mailListColumn.width
                 height: Units.dp(100)
 
-                backgroundColor: selectedIndex == index ? "silver" : globalBackgroundColor
+                backgroundColor: selectedMailIndex == index ? "silver" : globalBackgroundColor
 
                 onClicked: {
                     model.mail_isread = true;           // update isread
-                    selectedIndex = index;
-                    console.log(mailListModel.getDateTime(index));
-                    mailWebView.loadHtml(mailListModel.getContent(index));
+                    selectedMailIndex = index;
+                    mailWebView.loadHtml(mailListModel.getHTMLContent(index));
                 }
 
                Rectangle{
@@ -303,24 +399,43 @@ ApplicationWindow {
                    color: model.mail_isread ? mailListItem.backgroundColor : "green"
                }
 
-                Label{
-                    id: mailTitle
+               ColumnLayout{
                     anchors.left: isreadRectangle.right
                     anchors.margins: Units.dp(5)
-                    text: model.mail_subject
-                    font.bold: true
-                    font.pixelSize: Units.dp(20)
-                }
+                    spacing: Units.dp(5)
 
-                Label{
-                    anchors.top: mailTitle.bottom
-                    anchors.left: mailTitle.left
-                    anchors.margins: Units.dp(5)
+                    Label{
+                        id: mailSender
+                        text: model.mail_sender.split('@')[0]
+                        font.bold: true
+                        Layout.fillWidth: true
+                        font.pixelSize: Units.dp(20)
+                    }
 
-                    id: mailContent
-                    text: model.mail_content.substr(0, 10)
-                    font.family: contentFont
-                }
+                    Label{
+                        id: mailTitle
+                        anchors.leftMargin: Units.dp(5)
+                        Layout.fillWidth: true
+                        text: model.mail_subject
+
+                        font.family: contentFont
+
+                        wrapMode:  Text.WordWrap
+                    }
+
+                    Label{
+                        id: mailContent
+                        anchors.leftMargin: Units.dp(5)
+                        Layout.fillWidth: true
+
+                        text: model.mail_content.split('\n')[0]
+                        font.family: contentFont
+                        wrapMode: Text.WordWrap
+
+                    }
+
+               }
+
 
                 ThinDivider{
                     anchors {
@@ -355,7 +470,7 @@ ApplicationWindow {
                 anchors.margins: Units.dp(10)
                 anchors.topMargin: 0
 
-                visible: selectedIndex >= 0
+                visible: selectedMailIndex >= 0
 
                 RowLayout{
                     id : mailViewToolBar
@@ -394,6 +509,12 @@ ApplicationWindow {
 
                 }
 
+
+                ProgressBar{
+                    Layout.fillWidth: true
+                    value: mailWebView.loadProgress/100.0
+                }
+
                 RowLayout{
                     id: mailHeaderView
 
@@ -416,14 +537,14 @@ ApplicationWindow {
                         spacing: Units.dp(2)
                         Label  {
                             id : mailHeaderSender
-                            text : mailListModel.getSender(selectedIndex)
+                            text : mailListModel.getSender(selectedMailIndex)
                             font.bold: true
                             font.pixelSize: Units.dp(20)
                         }
 
                         Label {
                             id : mailHeaderDatetime
-                            text : mailListModel.getDateTime(selectedIndex)
+                            text : mailListModel.getDateTime(selectedMailIndex)
                             font.pixelSize: Units.dp(13)
                         }
                     }
@@ -431,11 +552,11 @@ ApplicationWindow {
                 }
 
                 Label {
-                    text : mailListModel.getSubject(selectedIndex);
+                    text : mailListModel.getSubject(selectedMailIndex);
                 }
 
                 Label{
-                    text : mailListModel.getRecipients(selectedIndex);
+                    text : mailListModel.getRecipients(selectedMailIndex);
                 }
 
                 WebEngineView{
@@ -457,26 +578,3 @@ ApplicationWindow {
 
 }
 
-
-/* 测试单个Mail访问
-        ListView{
-            width: 100
-            height: 100
-            anchors.right: parent.right
-            anchors.top: parent.top
-            model: mailListModel.get(0)
-
-            delegate :Component{
-                ListItem.Standard{
-                    width: 100
-                    height: 100
-
-                    backgroundColor: "red"
-                    Label{
-                        text: "subject" + model.subject
-                    }
-                }
-
-            }
-        }
-*/

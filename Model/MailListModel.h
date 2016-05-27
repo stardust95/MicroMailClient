@@ -10,7 +10,10 @@
 #include <QtAlgorithms>
 #include <QQmlEngine>
 #include <QDebug>
+#include <QStringList>
 #include <QtConcurrent/QtConcurrent>
+
+#include <fstream>
 
 #include "MailBody.h"
 #include "IMAPClient.h"
@@ -35,6 +38,10 @@ namespace Models{
 
         Q_PROPERTY(double progress READ getProgress NOTIFY progressChanged)
 
+        Q_PROPERTY(QStringList folders READ getFolders NOTIFY foldersChanged)
+
+        Q_PROPERTY(int folderIndex READ getFolderIndex NOTIFY folderIndexChanged)
+
     public:
 
         explicit MailListModel(QObject * parent = 0) : QAbstractListModel(parent) {
@@ -46,7 +53,6 @@ namespace Models{
 
         }
 
-
         enum MailBodyRoles{
             mail_subject = Qt::UserRole + 1,
             mail_content,
@@ -54,6 +60,7 @@ namespace Models{
             mail_isread,
             mail_sender,
             mail_recipients,
+            mail_htmlcontent,
     //        mail_attachments
         };
 
@@ -62,6 +69,7 @@ namespace Models{
             QHash<int, QByteArray> roles;
             roles[mail_subject] = "mail_subject";
             roles[mail_content] = "mail_content";
+            roles[mail_htmlcontent] = "mail_htmlcontent";
             roles[mail_datetime] = "mail_datetime";
             roles[mail_isread] = "mail_isread";
             roles[mail_sender] = "mail_sender";
@@ -88,12 +96,12 @@ namespace Models{
             switch( role ){
                 case mail_content:
                     return item->getContent ();
+                case mail_htmlcontent:
+                    return item->getHTMLContent ();
                 case mail_datetime:
-                    return item->getDateTime ();
+                    return item->getDateTime ().split (' ').first ();
                 case mail_isread:
                     return item->getIsread();
-//                case mail_recipients:
-//                    return item->recipients.at (0);
                 case mail_sender:
                     return item->getSender ();
                 case mail_subject:
@@ -138,6 +146,10 @@ namespace Models{
                 this->beginInsertRows (QModelIndex(), this->rowCount (), this->rowCount () + items.size () - 1);
 
                 for(auto item : items){
+
+                    std::ofstream output(item->getSubject ().toStdString ());
+                    output << item->getDateTime ().toStdString ()<< std::endl;
+                    output << item->getContent ().toStdString ()<< std::endl;
                     this->_mails.append (item);
                 }
 
@@ -147,26 +159,22 @@ namespace Models{
 
         }
 
-//        QVariant headerData(int section, Qt::Orientation orientation, int role) const{
-
-//        }
-
-//         void buildMailList(const MAILBODY_PTR_QLIST & items){          // only for debug
-//             if ( items.size () == 0 )
-//                 return;
-//             this->beginInsertRows (QModelIndex(), this->rowCount (), this->rowCount () + items.size () - 1);
-
-//             foreach (auto item, items) {
-//                 this->_mails.append (item);
-//             }
-
-//             this->endInsertRows ();
-
-//         }
-
-         QList<QString> getFolders( ){
+        Q_INVOKABLE QStringList getFolders( ){
              return _foldersMap.keys ();
          }
+
+        Q_INVOKABLE int getFolderIndex(){
+
+            int res = 0;
+
+            for(auto it = _foldersMap.keyBegin (); it != _foldersMap.keyEnd ()&& *it != _receiveClient->getSelectedFolder () ; it++, res++);
+
+            if( res>= this->_foldersMap.size () ){
+                // throw
+            }
+
+            return res;
+        }
 
         MAILBODY_PTR_QLIST toList(const QString & folder) const{
             return this->_mails;
@@ -191,6 +199,14 @@ namespace Models{
         Q_INVOKABLE QVariant getContent(int index){
             if( index >= 0 && index < _mails.length () ){
                 return QVariant::fromValue(_mails.at (index)->getContent ());
+            }
+            return QVariant();
+        }
+
+
+        Q_INVOKABLE QVariant getHTMLContent(int index){
+            if( index >= 0 && index < _mails.length () ){
+                return QVariant::fromValue(_mails.at (index)->getHTMLContent ());
             }
             return QVariant();
         }
@@ -231,33 +247,14 @@ namespace Models{
             emit(progressChanged ());
         }
 
-//#ifdef _DEBUG
-
-        Q_INVOKABLE void begin(){
-
-//            run();
-
-            QtConcurrent::run(this, &MailListModel::run);
-
+        Q_INVOKABLE void buildMailList(int folderIndex){
+            QtConcurrent::run(this, &MailListModel::doBuildMailList, folderIndex);
+            return ;
         }
 
-        Q_INVOKABLE void run(){
+        bool doBuildMailList(int folderIndex){                // <= QtConcurrent::run()
 
-            QString host = "imap.qq.com";
-
-            QString user = "375670450@qq.com";
-
-            QString passwd = "";
-
-               this->login (user, passwd, host, "143");
-
-        }
-
-//#endif
-
-        Q_INVOKABLE bool BuildMailList(int folderIndex){
-
-            qDebug() << folderIndex << ", " << this->getFolders ().size () << "\n";
+            qDebug() << folderIndex << ", " << this->getFolders ().size() << "\n";
 
             if( folderIndex >= 0 && folderIndex < this->getFolders ().size ()
                     && this->getFolders ().at (folderIndex) != this->_receiveClient->getSelectedFolder() ){
@@ -267,8 +264,6 @@ namespace Models{
 //                auto folder = this->getFolders ().at (folderIndex);             // in login function has got folders
 
                 QString folder = "INBOX";
-
-                QList<int> indexs;
 
                 int total = _receiveClient->selectFolder(folder);
 
@@ -280,22 +275,16 @@ namespace Models{
 
                     this->appendRows (tmplist);
 
-                    qDebug() << "getting Mail Bodies\n";
-
-                    this->setProgress ( _progress + 1.0/total );
+                    this->setProgress ( this->_progress + 1.0/total );
 
                     qDebug() << "progress set to " << this->getProgress () << "\n";
 
                     this->endResetModel ();
 
-//                    break;
+                    tmplist.clear ();
                 }
 
-                while( ++cur_count < _mails.length () ){
-                    indexs.push_back (cur_count);
-                }
-
-                _foldersMap[folder] = indexs;
+                _foldersMap[folder] = tmplist;
 
                 return true;
             }
@@ -324,13 +313,14 @@ namespace Models{
                 _receiveClient->getFolders (folders);          // Assume that POP3 only has one folder "INBOX"
 
                 for(auto folder: folders){
-                    QList<int> tmp;
+                    MAILBODY_PTR_QLIST tmp;
                     this->_foldersMap.insert (folder, tmp);
                 }
+                emit(foldersChanged ());
 
                 // initially load the mails in first folder
-                if( folders.size () > 0 )
-                    BuildMailList (0);
+//                if( folders.size () > 0 )
+//                    QtConcurrent::run(this, &MailListModel::doBuildMailList, 0);
 
                 return true;
             }
@@ -344,7 +334,7 @@ namespace Models{
 
         ACCOUNT_PTR _user;
 
-        QMap<QString, QList<int>> _foldersMap;
+        QMap<QString, MAILBODY_PTR_QLIST> _foldersMap;
 
         SENDMAILCLIENT_PTR _sendClient;
 
@@ -357,6 +347,10 @@ namespace Models{
     signals:
 
         void progressChanged();
+
+        void foldersChanged();
+
+        void folderIndexChanged();
 
     };
 

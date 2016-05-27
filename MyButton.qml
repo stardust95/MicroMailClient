@@ -8,8 +8,6 @@ Button{
 
     default property alias label : btnLabel.text
 
-//    width: 400 // no sense?
-
     RowLayout{
 
         Image{

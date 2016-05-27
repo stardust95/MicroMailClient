@@ -52,6 +52,14 @@ public:
         return _content;
     }
 
+    QString getHTMLContent(){
+        return _htmlContent;
+    }
+
+    void setHTMLContent (QString c){
+        _htmlContent = c;
+    }
+
     void setContent(QString c){
         _content = c;
     }
@@ -98,6 +106,8 @@ private:
     QString _subject;
 
     QString _content;
+
+    QString _htmlContent;
 
     QString _sender;
 

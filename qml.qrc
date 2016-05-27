@@ -48,5 +48,7 @@
         <file>icons/unarchive.svg</file>
         <file alias="undo">icons/undo.svg</file>
         <file>icons/weekend.svg</file>
+        <file alias="folder">icons/folder.svg</file>
+        <file alias="folder_open">icons/folder_open.svg</file>
     </qresource>
 </RCC>

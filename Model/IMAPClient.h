@@ -70,6 +70,13 @@ public:
 
         qDebug() << "In select Folder, folder = "<< folder << ", mailList.size = " << _mailList.size () << "uids.size = " << uids.size ()<< "\n";
 
+        for(int i=0; i<_mailList.size (); i++){
+            for(int j=0; j<i; j++){
+                if( _mailList.at (i).uid == _mailList.at(j).uid )
+                    qDebug() << QString::fromUtf8( _mailList.at (i).subject.c_str()) << " and " << QString::fromUtf8 (_mailList.at (j).subject.c_str()) << " has the same uid, subject = " << QString::fromUtf8 (_mailList.at (i).subject.c_str()) << "\n";
+            }
+        }
+
         _curListIndex = 0;
 
         return uids.size ();
@@ -78,27 +85,40 @@ public:
 
     int getMailBodies(QList<MAILBODY_PTR> & result, int count ) override{
 
-        std::string msg;
+        std::string partsPaths;
 
         int counter = 0;
-
-        qDebug() << "listIndex = " <<_curListIndex << ", mailList.size=" << _mailList.size () << "\n";
 
         for( ; _curListIndex < _mailList.size (); _curListIndex++, counter++) {
 
             if( counter >= count )
                 break;
 
-            auto info = _mailList.at (_curListIndex);
+            auto info = _mailList.at ( _mailList.size () - _curListIndex - 1);
 
-            _session->loadMessage (_selectedFolder.toStdString (), info, msg);
+//            if ( info.uid != "1577" )
+//                continue;
+
+            _session->loadMessage (_selectedFolder.toStdString (), info);
 
             MAILBODY_PTR newmail = MAILBODY_PTR::create(QString::fromUtf8 (info.subject.c_str ()));
 
-            newmail->setContent (QString::fromUtf8 (msg.c_str ()));
-            newmail->setSender (QString::fromUtf8 (info.from.c_str()));
+            newmail->setContent (QString::fromUtf8 (info.text.c_str ()));
+
+            newmail->setHTMLContent (QString::fromUtf8 (info.htmlText.c_str ()));
+
+//            qDebug() << QString::fromUtf8 ( info.uid.c_str() ) << " content: " << newmail->getHTMLContent ()<< "\n";
+
+            std::string sender = info.from.find_last_of('<') != std::string::npos ?
+                                info.from.substr(info.from.find_last_of('<')+1, info.from.find_last_of('>') - info.from.find_last_of('<')-1) :
+                                info.from ;
+
+            newmail->setSender (QString::fromUtf8 (sender.c_str()));
+
             newmail->addRecipient (QString::fromUtf8 (info.to.c_str()));
+
             newmail->setDateTime (QString::fromUtf8 (info.date.c_str()));
+
             newmail->setIsread (false);
 
             result.push_back (newmail);
@@ -129,6 +149,8 @@ private:
 
 
     Poco::Net::IMAPClientSession::MessageInfoVec _mailList;
+
+//    QMap<QString, Poco::Net::IMAPClientSession::MessageInfoVec> _mailList;
 
      SESSION_PTR _session;
 	

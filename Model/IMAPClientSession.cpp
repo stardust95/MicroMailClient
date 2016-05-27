@@ -10,12 +10,16 @@
 #include "Poco/TextConverter.h"
 #include "Poco/Net/MessageHeader.h"
 
+#include <Windows.h>
+
 #include <iostream>
+#include <codecvt>
 #include <sstream>
 #include <algorithm>
 #include <iterator>
 #include <string>
 #include <vector>
+#include <fstream>
 
 using Poco::NumberFormatter;
 using Poco::DateTimeFormatter;
@@ -31,6 +35,43 @@ namespace Poco {
     namespace Net {
 
         //POCO_IMPLEMENT_EXCEPTION(IMAPException, NetException, "IMAP Exception")
+
+        // GB2312转UTF8
+        std::string GB2312ToUTF8(const char* lpszGb32Text)
+        {
+            int nUnicodeBufLen = MultiByteToWideChar(CP_ACP, 0, lpszGb32Text, -1, 0, 0);
+                if (nUnicodeBufLen == 0)
+                    return "";
+
+                WCHAR* pUnicodeBuf = new WCHAR[nUnicodeBufLen];
+                if (pUnicodeBuf == 0)
+                    return "";
+
+                MultiByteToWideChar(CP_ACP, 0, lpszGb32Text, -1, pUnicodeBuf, nUnicodeBufLen);
+
+                int nUtf8BufLen = WideCharToMultiByte(CP_UTF8, 0, pUnicodeBuf, -1, 0, 0, NULL, NULL);
+                if (nUtf8BufLen == 0)
+                {
+                    delete[] pUnicodeBuf;
+                    return "";
+                }
+
+                char* pUft8Buf = new char[nUtf8BufLen];
+                if (pUft8Buf == 0)
+                {
+                    delete[] pUnicodeBuf;
+                    return "";
+                }
+
+                WideCharToMultiByte(CP_UTF8, 0, pUnicodeBuf, -1, pUft8Buf, nUtf8BufLen, NULL, NULL);
+
+                std::string strUtf8 = pUft8Buf;
+
+                delete[] pUnicodeBuf;
+                delete[] pUft8Buf;
+
+                return strUtf8;
+        }
 
         template <class S=std::string>
         S trimchar(const S& str, const char ch)
@@ -317,35 +358,41 @@ namespace Poco {
             if (!sendCommand("DELETE \"" + folder + "\" *", response, data)) throw NetException("Can't delete folder", response);
         }
 
-        void IMAPClientSession::loadMessage (const std::string & folder, const MessageInfo & info, std::string & message) {
+        void IMAPClientSession::loadMessage (const std::string & folder, MessageInfo & info) {
             std::string response, tmpdata;
             std::vector<std::string> data, data1;
-            message.clear ( );
 
             if ( !sendCommand ("SELECT \"" + folder + "\"", response, data) ) throw NetException ("Can't select from folder", response);
 
-            loadText (info.uid, info.parts, "", message);
+            loadText (info.uid, info.parts, "", "HTML" , info.htmlText);
+            loadText (info.uid, info.parts, "", "PLAIN" , info.text);
 
 //            sendCommand ("CLOSE", response, data1);
 
-            if ( data.size ( ) <= 2 ) return;
+//            if ( data.size ( ) <= 2 ) return;
 
-            for ( int i = 1; i < data.size ( ) - 2; i++ ) {
-                if( data[i].length() > 0 && data[i][0] != '*' ){
-                    message += data[i];
-                    message += "\r\n";
-                }
-            }
+//            for ( int i = 1; i < data.size ( ) - 2; i++ ) {
+//                if( data[i].length() > 0 && data[i][0] != '*' ){
+//                    message += data[i];
+//                    message += "\r\n";
+//                }
+//            }
+
         }
 
-        void IMAPClientSession::loadText (const std::string & uid, const PartInfo & info, const std::string & index, std::string & text) {
+        void IMAPClientSession::loadText (const std::string & uid, const PartInfo & info, const std::string & index, const std::string & _type, std::string & text) {
+
             auto & attrs = info.attributes;
+
+            std::string type = _type;
+
+            std::transform(type.begin (), type.end (), type.begin (), ::toupper );
 
             std::string response;
             std::vector<std::string> result;
             std::stringstream ss;
 
-            if ( std::find (attrs.begin ( ), attrs.end ( ), "TEXT") != info.attributes.end ( ) ) {	// 如果是正文类型
+            if ( std::find (attrs.begin ( ), attrs.end ( ), type) != info.attributes.end ( ) ) {      // 如果是正文类型
 
                 if ( !sendCommand ("UID FETCH " + uid + " BODY.PEEK[" + ( index.length() == 0 ? "1" : index ) + "]", response, result) )
                     throw NetException ("Cannot Load Mail Text", response);
@@ -371,28 +418,53 @@ namespace Poco {
                     }
 
                 } else {
-                    std::cout << "UNKNONW CONTENT TRANSFER TYPE: " ;
+                    std::cout << "Unknown Content Transfer Type: " ;
                     for(auto s : attrs){
                         std::cout << s << ";";
                     }
-                    std::cout << std::endl;
+//                    std::cout << "Content: " << ss.str ()<< std::endl;
                     text += ss.str ( );
                     //throw NetException ("UNKNOWN CONTENT TRANSFER TYPE");
                 }
 
-            } else if( std::find (attrs.begin ( ), attrs.end ( ), "APPLICATION") != attrs.end()) {		// 附件类型, 只记录index和文件名(需要用decoder解码), 不需要读内容
-
             }
 
             for ( int i = 0; i < info.childs.size ( ); i++ ) {
-                loadText (uid, info.childs.at(i), index + "." + std::to_string(i+1), text);
+                std::string nextindex = index.length () == 0 ? std::to_string(i+1) : index + "." + std::to_string(i+1);
+                loadText (uid, info.childs.at(i), nextindex, type,  text);
             }
 
-            text += "\n";
+//            text += "\n";
 
             return;
 
         }
+
+        void IMAPClientSession::loadParts (const std::string & uid, const PartInfo & info, const std::string & index, const std::string & _type, std::vector<std::string> & paths){
+
+            auto & attrs = info.attributes;
+
+            std::string type = _type;
+
+            std::transform(type.begin (), type.end (), type.begin (), ::toupper );
+
+            std::string response;
+            std::vector<std::string> result;
+
+            if ( std::find (attrs.begin ( ), attrs.end ( ), type) != info.attributes.end ( ) ) {
+
+                paths.push_back (index);
+
+            }
+
+            for ( int i = 0; i < info.childs.size ( ); i++ ) {
+                std::string nextindex = index.length () == 0 ? std::to_string(i+1) : index + "." + std::to_string(i+1);
+                loadParts(uid, info.childs.at(i), nextindex, type,  paths);
+            }
+
+
+        }
+
 
         void IMAPClientSession::getMessages(const std::string& folder, std::vector<std::string>& uids, MessageInfoVec& messages)
         {
@@ -481,7 +553,7 @@ namespace Poco {
                         m.from = IMAPClientSession::decoder(trim (tokens4[1]));
                     //m.from = MessageHeader::decodeWord(trim(tokens4[1]));
                     else if ( cmd == "TO" )
-                        m.from = IMAPClientSession::decoder (trim (tokens4[1]));
+                        m.to = IMAPClientSession::decoder (trim (tokens4[1]));
                         //m.to = MessageHeader::decodeWord(trim(tokens4[1]));
                 }
                 messages.push_back(m);
@@ -541,13 +613,13 @@ namespace Poco {
 
             if ( encoding[0] == 'B' ) {	// Base64编码
                 Base64Decoder decode (iss);
-                while ( !decode.eof ( ) && (c = decode.get()) ) {
+                while ( ( c = decode.get ( ) ) != -1 ) {
                     tmp += c;
                 }
             } else if ( encoding[0] == 'Q' ) {		// Quote-Printable编码
                 QuotedPrintableDecoder qpd (iss);
-                while ( !qpd.eof ( ) && ( c = qpd.get ( ) ) ) {
-                    text += c;
+                while ( ( c = qpd.get ( ) ) != -1  ) {
+                    tmp += c;
                 }
 
             } else {				// 编码未知, 直接返回原字符串
@@ -555,16 +627,27 @@ namespace Poco {
                 return;
             }
 
-            // 转换字符集
+            // 标题转换字符集
             if ( charset != charset_to ) {
-                try {
-                    TextEncoding & enc = TextEncoding::byName (charset);
-                    TextEncoding & dec = TextEncoding::byName (charset_to);
-                    TextConverter converter (enc, dec);
-                    converter.convert (tmp, outs);
-                } catch ( ... ) {			// 无法转换的未知字符集(包括GB2312)
-                    std::cout << "Unknown charset " << charset << std::endl;
-                    outs = tmp;
+                std::transform(charset.begin (), charset.end (), charset.begin (), ::toupper);
+                if( charset == "GB2312" ){
+                    std::cout << "charset == gb2312" << std::endl;
+                    try{
+                        outs = GB2312ToUTF8 (tmp.c_str ());
+                    }catch( std::exception & e ){
+                        std::cout << e.what () << std::endl;
+                    }
+                }else{
+                    try {
+                        TextEncoding & enc = TextEncoding::byName (charset);
+                        TextEncoding & dec = TextEncoding::byName (charset_to);
+                        TextConverter converter (enc, dec);
+                        converter.convert (tmp, outs);
+                    } catch ( ... ) {			// 无法转换的未知字符集(包括GB2312)
+                        std::cout << "Unknown charset " << charset << std::endl;
+                        std::cout << "Content: " << tmp << std::endl;
+                        outs = tmp;
+                    }
                 }
             } else {			// 不需要转换字符集
                 outs = tmp;
@@ -581,7 +664,7 @@ namespace Poco {
                     break;
                 }
                 if ( start > 0 ) {
-                    outs = text.substr (0, start);
+                    outs += text.substr (0, start);
                 }
 
                 text = text.substr (start+2);		// 从=?之后开始查找其余信息
