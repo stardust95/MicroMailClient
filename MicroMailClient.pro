@@ -19,9 +19,9 @@ RESOURCES += qml.qrc
 
 POCOHOME = "C:\Users\37567\Documents\Visual Studio 2015\Projects\MicroMailClient-QT\PocoLib"
 
-INCLUDEPATH += "$${POCOHOME}\include"
+INCLUDEPATH += "E:\oopProject\pocolib-all\include"
 
-LIBS += -L"$${POCOHOME}\lib"
+LIBS += -L"E:\oopProject\pocolib-all\lib" -lPocoFoundationd
 
 # Default rules for deployment.
 
@@ -37,4 +37,8 @@ HEADERS += \
     Model/Utils.h \
     Model/IMAPClientSession.h \
     Model/ReceiveMailClient.h \
-    Model/SendMailClient.h
+    Model/SendMailClient.h \
+    Exception/MailClientException.h \
+    Exception/MailGenerationException.h \
+    Exception/MailSendException.h \
+    Exception/MailReceiveException.h
