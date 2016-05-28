@@ -4,6 +4,9 @@
 #include "Utils.h"
 #include <qstring.h>
 #include <iostream>
+#include <QVariant>
+#include <QSharedPointer>
+#include <QDebug>
 
 class Attachment : public Poco::Net::PartSource
 {
