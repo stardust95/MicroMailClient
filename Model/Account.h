@@ -3,10 +3,29 @@
 #include <QList>
 #include <QSharedPointer>
 #include <qvector.h>
-#include<iostream>
+#include <iostream>
+#include <QVariant>
+#include <QSharedPointer>
+#include <QDebug>
 
 class Account: public QObject
 {
+    Q_OBJECT
+
+    Q_PROPERTY(QString username READ getUserName CONSTANT)
+
+    Q_PROPERTY(QString password READ getPassWord CONSTANT)
+
+    Q_PROPERTY(QString mailhost READ getMailHost CONSTANT)
+
+    Q_PROPERTY(QString smtphost READ getSMTPHost CONSTANT)
+
+    Q_PROPERTY(QString pop3host READ getPOP3Host CONSTANT)
+
+    Q_PROPERTY(QString imaphost READ getIMAPHost CONSTANT)
+
+    Q_PROPERTY(bool requiressl READ getRequireSSL CONSTANT)
+
     QString _userName;
     QString _passWord;
     QString _mailHost;

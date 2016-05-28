@@ -4,6 +4,9 @@
 #include "Model/MailListModel.h"
 #include "Model/IMAPClient.h"
 
+#include "Exception/mailclientexception.h"
+#include "Exception/MailGenerationException.h"
+
 #include <QtGui/QGuiApplication>
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
@@ -97,4 +100,6 @@ int main(int argc, char *argv[])
     return app.exec();
 
 }
+
+
 
