@@ -20,6 +20,7 @@
 #include<vector>
 #include<sstream>
 #include<fstream>
+#include<qdebug.h>
 
 using namespace std;
 
@@ -100,6 +101,8 @@ int main(int argc, char *argv[])
     return app.exec();
 
 }
+
+
 
 
 

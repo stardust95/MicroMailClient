@@ -7,7 +7,9 @@ class MailReceiveException: public MailClientException
 public:
     MailReceiveException() {}
     MailReceiveException(const string& exc): MailClientException(exc.c_str()) {}
-    MailReceiveException(const MailClientException& mce): MailClientException(mce) {}
+    MailReceiveException(const MailReceiveException& mce): MailClientException(mce) {
+        message = "MailReceiveException: " + message;
+    }
     ~MailReceiveException() override {}
     const char* what() override{
         message = exception::what();

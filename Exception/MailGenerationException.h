@@ -6,13 +6,20 @@ using namespace std;
 class MailGenerationException: public MailClientException
 {
 public:
-    MailGenerationException() {}
-    MailGenerationException(const string& exc): MailClientException(exc.c_str()) {}
-    MailGenerationException(const MailClientException& mce): MailClientException(mce) {}
+    MailGenerationException() {
+//        qDebug() << "MailGenerationException default Constructor\n";
+        message = "MailGenerationException: " + message;
+    }
+    MailGenerationException(const string& exc): MailClientException(exc.c_str()) {
+//        qDebug() << "MailGenerationException string Constructor\n";
+        message = "MailGenerationException: " + message;
+    }
+    MailGenerationException(const MailGenerationException& mce): MailClientException(mce) {
+//        qDebug() << "MailGenerationException copy Constructor\n";
+        message = "MailGenerationException: " + message;
+    }
     ~MailGenerationException() override {}
     const char* what() override{
-        message = exception::what();
-        message = "MailGenerationException: " + message;
         return message.c_str();
     }
 };

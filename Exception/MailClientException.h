@@ -1,19 +1,30 @@
 #ifndef MAILCLIENTEXCEPTION_H
 #define MAILCLIENTEXCEPTION_H
+#include <QString>
+#include <QtDebug>
+
 #include <string>
-#include <qstring.h>
 #include <exception>
 #include <iostream>
 using namespace std;
 
 class MailClientException: public exception
 {
-protected:
+public:
     string message;
 public:
-    MailClientException() {}
-    MailClientException(const string& exc): exception(exc.c_str()) {}
-    MailClientException(const MailClientException& mce): exception(mce) {}
+    MailClientException() {
+//        qDebug() << "MailClientException default Constructor\n";
+        message = exception::what();
+    }
+    MailClientException(const string& exc): exception(exc.c_str()) {
+//        qDebug() << "MailClientException string Constructor\n";
+        message = exception::what();
+    }
+    MailClientException(const MailClientException& mce): exception(mce){
+//        qDebug() << "MailClientException copy Constructor\n";
+        message = exception::what();
+    }
     virtual ~MailClientException() throw() = 0;
     virtual const char* what() = 0;
 };
