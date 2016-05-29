@@ -16,6 +16,8 @@ ApplicationWindow {
 
     property int selectedMailIndex: -1
 
+    property var selectedMailIndexs: []
+
     property int selectedFolder: 0
 
     property string globalBackgroundColor: "whitesmoke"
@@ -162,7 +164,10 @@ ApplicationWindow {
 //                    model: temp
                     Layout.fillWidth: true
                     delegate: foldersListDelegate
-                    onModelChanged: console.log("model = " + model)
+                    onModelChanged: {
+                        if( mailListModel.folders.length > 0 )
+                             snackbar.open("Login Success")
+                    }
                 }
 
             }
@@ -175,7 +180,6 @@ ApplicationWindow {
 
 //                    backgroundColor: mailListModel.folderIndex == index ?
 
-
                     Label{
                         text: model.modelData
                         anchors.verticalCenter: parent.verticalCenter
@@ -184,7 +188,10 @@ ApplicationWindow {
                         font.pixelSize: Units.dp(13)
                     }
                     onVisibleChanged: console.log("listitem visible changed: " + visible)
-                    onClicked: mailListModel.buildMailList(index)
+                    onClicked: {
+                        snackbar.open("Loading Mails in " + model.modelData)
+                        mailListModel.buildMailList(index)
+                    }
                 }
             }
 
@@ -222,6 +229,7 @@ ApplicationWindow {
                 onClicked: {
                     menuSidebar.expanded = !menuSidebar.expanded
                 }
+
             }
 
         }
@@ -255,6 +263,8 @@ ApplicationWindow {
             delegate:mailListDelegate
 
             model: mailListModel
+
+
 
             header : Rectangle{
                 id: mailListHeader
@@ -339,7 +349,10 @@ ApplicationWindow {
 
                     value: mailListModel.progress
 
-//                    onValueChanged: console.log("valueChanged:"+value)
+                    onValueChanged:{
+                        if( value == 1 )
+                            snackbar.open("Mails Loaded")
+                    }
 
                 }
 
@@ -574,6 +587,10 @@ ApplicationWindow {
 
 
         }
+
+    Snackbar{
+        id: snackbar
+    }
 
 
 }

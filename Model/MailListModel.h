@@ -47,6 +47,7 @@ namespace Models{
         explicit MailListModel(QObject * parent = 0) : QAbstractListModel(parent) {
             _receiveProtocol = Utils::ProtocolType::IMAP;
             _progress = false;
+
         }
 
         ~MailListModel(){
@@ -137,6 +138,8 @@ namespace Models{
                 this->appendRows ( MAILBODY_PTR_QLIST() << item );
             }
         }
+
+
 
         void appendRows(const MAILBODY_PTR_QLIST & items){
             if( items.size () == 0 )
