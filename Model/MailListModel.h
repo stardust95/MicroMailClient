@@ -19,6 +19,7 @@
 #include "IMAPClient.h"
 #include "ReceiveMailClient.h"
 #include "SendMailClient.h"
+#include "POP3Client.h"
 #include "Utils.h"
 
 namespace Models{
@@ -298,11 +299,11 @@ namespace Models{
 /*
         Login and retrive all mails within folders.
 */
-            if( _receiveProtocol == Utils::ProtocolType::IMAP )
-                _receiveClient = QSharedPointer<IMAPClient>::create(host, port);
+//            if( _receiveProtocol == Utils::ProtocolType::IMAP )
+                _receiveClient = QSharedPointer<POP3Client>::create(host, port);
             // _sendClient = MAILCLIENT_PTR::create(host, port);
 
-            if( _receiveClient->login(user, passwd) ){          // if login success, retrive mails
+            if( _receiveClient->login(user, passwd,true) ){          // if login success, retrive mails
 //            if( _sendClient->login (user, passwd) && _receiveClient->login (user,  passwd) ){
 
                 // initialize the user info
