@@ -3,9 +3,13 @@
 #include "Model/Utils.h"
 #include "Model/MailListModel.h"
 #include "Model/IMAPClient.h"
+#include "Model/Account.h"
+#include "Model/Attachment.h"
 
 #include "Exception/mailclientexception.h"
 #include "Exception/MailGenerationException.h"
+#include "Exception/MailReceiveException.h"
+#include "Exception/MailSendException.h"
 
 #include <QtGui/QGuiApplication>
 #include <QtQml/QQmlApplicationEngine>
@@ -78,28 +82,44 @@ void test(){
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+//    Account a;
 
-    QtWebEngine::initialize ();
+//    Attachment b;
 
-    QQmlApplicationEngine engine;
-    Models::MailListModel model;
+//    QGuiApplication app(argc, argv);
 
-    MAILBODY_PTR_QLIST list;
+//    QtWebEngine::initialize ();
 
-//    model.login (user, passwd, host, "143");
+//    QQmlApplicationEngine engine;
+//    Models::MailListModel model;
 
-//    for(int i=1; i<=10; i++)
-//        list.push_back (MAILBODY_PTR::create("Subject" + QString::number (i)));
+//    MAILBODY_PTR_QLIST list;
 
-//    model.buildMailList (list);
+////    model.login (user, passwd, host, "143");
 
-    engine.rootContext ()->setContextProperty("mailListModel", &model);
+////    for(int i=1; i<=10; i++)
+////        list.push_back (MAILBODY_PTR::create("Subject" + QString::number (i)));
 
-    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+////    model.buildMailList (list);
 
-    return app.exec();
+//    engine.rootContext ()->setContextProperty("mailListModel", &model);
 
+//    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+
+//    return app.exec();
+
+    QString s("E:/oopProject/MicroMailClient-UML-1.5.pdf");
+    QFile f(s);
+    f.open(QIODevice::ReadOnly);
+    cout<<f.isOpen();
+
+    Attachment a("abc");
+    a.setFilePath("E:/oopProject/test.txt");
+    QByteArray b("123");
+
+    a.Download(b);
+    b = "456";
+    a.Download(b);
 }
 
 

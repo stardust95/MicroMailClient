@@ -102,6 +102,8 @@ public:
     void setRequireSSL(bool i) {
         _requireSSL = i;
     }
+
+
 };
 
 

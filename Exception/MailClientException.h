@@ -25,10 +25,10 @@ public:
 //        qDebug() << "MailClientException copy Constructor\n";
         message = exception::what();
     }
-    virtual ~MailClientException() throw() = 0;
+    virtual ~MailClientException() noexcept = 0 {}
     virtual const char* what() = 0;
 };
 
-MailClientException::~MailClientException() {}
+
 
 #endif // MAILCLIENTEXCEPTION_H

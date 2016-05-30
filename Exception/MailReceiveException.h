@@ -5,15 +5,17 @@
 class MailReceiveException: public MailClientException
 {
 public:
-    MailReceiveException() {}
-    MailReceiveException(const string& exc): MailClientException(exc.c_str()) {}
+    MailReceiveException() {
+        message = "MailReceiveException: " + message;
+    }
+    MailReceiveException(const string& exc): MailClientException(exc.c_str()) {
+        message = "MailReceiveException: " + message;
+    }
     MailReceiveException(const MailReceiveException& mce): MailClientException(mce) {
         message = "MailReceiveException: " + message;
     }
     ~MailReceiveException() override {}
     const char* what() override{
-        message = exception::what();
-        message = "MailReceiveException: " + message;
         return message.c_str();
     }
 };
