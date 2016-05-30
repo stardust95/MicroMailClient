@@ -1,6 +1,6 @@
 #ifndef MAILCLIENTEXCEPTION_H
 #define MAILCLIENTEXCEPTION_H
-#include <qstring.h>
+#include <QString>
 #include <exception>
 #include <iostream>
 using namespace std;

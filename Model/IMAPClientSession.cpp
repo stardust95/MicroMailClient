@@ -4,7 +4,6 @@
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/Net/QuotedPrintableDecoder.h"
 #include "Poco/Base64Decoder.h"
-#include "Poco/Stringtokenizer.h"
 #include "Poco/String.h"
 #include "Poco/Net/DialogSocket.h"
 #include "Poco/TextEncoding.h"
@@ -26,7 +25,6 @@ using Poco::NumberFormatter;
 using Poco::DateTimeFormatter;
 using Poco::StreamCopier;
 using Poco::Base64Decoder;
-using Poco::StringTokenizer;
 using Poco::Net::MessageHeader;
 
 using Poco::trim;
@@ -36,55 +34,6 @@ namespace Poco {
     namespace Net {
 
         //POCO_IMPLEMENT_EXCEPTION(IMAPException, NetException, "IMAP Exception")
-
-        // GB2312转UTF8
-        std::string GB2312ToUTF8(const char* lpszGb32Text)
-        {
-            int nUnicodeBufLen = MultiByteToWideChar(CP_ACP, 0, lpszGb32Text, -1, 0, 0);
-                if (nUnicodeBufLen == 0)
-                    return "";
-
-                WCHAR* pUnicodeBuf = new WCHAR[nUnicodeBufLen];
-                if (pUnicodeBuf == 0)
-                    return "";
-
-                MultiByteToWideChar(CP_ACP, 0, lpszGb32Text, -1, pUnicodeBuf, nUnicodeBufLen);
-
-                int nUtf8BufLen = WideCharToMultiByte(CP_UTF8, 0, pUnicodeBuf, -1, 0, 0, NULL, NULL);
-                if (nUtf8BufLen == 0)
-                {
-                    delete[] pUnicodeBuf;
-                    return "";
-                }
-
-                char* pUft8Buf = new char[nUtf8BufLen];
-                if (pUft8Buf == 0)
-                {
-                    delete[] pUnicodeBuf;
-                    return "";
-                }
-
-                WideCharToMultiByte(CP_UTF8, 0, pUnicodeBuf, -1, pUft8Buf, nUtf8BufLen, NULL, NULL);
-
-                std::string strUtf8 = pUft8Buf;
-
-                delete[] pUnicodeBuf;
-                delete[] pUft8Buf;
-
-                return strUtf8;
-        }
-
-        template <class S=std::string>
-        S trimchar(const S& str, const char ch)
-        {
-            int first = 0;
-            int last = int(str.size()) - 1;
-
-            while (first <= last && str[first] == ch) ++first;
-            while (last >= first && str[last]  == ch) --last;
-
-            return S(str, first, last - first + 1);
-        }
 
         IMAPClientSession::IMAPClientSession(const StreamSocket& socket) :
             _socket(socket),
@@ -248,7 +197,7 @@ namespace Poco {
                 Utils::tokenize(r, tokens, std::string(" "), std::string("\"\""));
                 Utils::tokenize(r.substr(r.find(")")), tokens2, std::string(" "), std::string("\"\""));
 
-                f.name = trimchar(tokens2[2],'"');
+                f.name = Utils::trimchar(tokens2[2],'"');
                 f.flags = tokens[2];
 
                 folders.push_back(f);
@@ -548,13 +497,13 @@ namespace Poco {
                     if (tokens4.size() < 2) continue;
 
                     if ( cmd == "SUBJECT" )
-                        m.subject = IMAPClientSession::decoder(trim (r.substr (8)));
+                        m.subject = Utils::decoder(trim (r.substr (8)));
                     //m.subject = MessageHeader::decodeWord(trim(r.substr(8)));
                     else if ( cmd == "FROM" )
-                        m.from = IMAPClientSession::decoder(trim (tokens4[1]));
+                        m.from = Utils::decoder(trim (tokens4[1]));
                     //m.from = MessageHeader::decodeWord(trim(tokens4[1]));
                     else if ( cmd == "TO" )
-                        m.to = IMAPClientSession::decoder (trim (tokens4[1]));
+                        m.to = Utils::decoder (trim (tokens4[1]));
                         //m.to = MessageHeader::decodeWord(trim(tokens4[1]));
                 }
                 messages.push_back(m);
@@ -581,7 +530,7 @@ namespace Poco {
                 }
 
                 if ( c == ' ' ) {
-                    if ( token != "" ) mi.attributes.push_back (trimchar (token, '"'));
+                    if ( token != "" ) mi.attributes.push_back (Utils::trimchar (token, '"'));
                     token.clear ( );
                     continue;
                 }
@@ -596,103 +545,6 @@ namespace Poco {
 
             return mi;
         }
-
-        void IMAPClientSession::decodeRFC2047
-            (const std::string & ins, std::string & outs, const std::string & charset_to ) {
-
-            outs.clear ( );
-
-            StringTokenizer tokens (ins, "?");				//
-
-            char c;
-            std::string tmp;
-            std::string charset = toUpper (tokens[0]);
-            std::string encoding = toUpper (tokens[1]);
-            std::string text = tokens[2];
-
-            std::istringstream iss (text);
-
-            if ( encoding[0] == 'B' ) {	// Base64编码
-                Base64Decoder decode (iss);
-                while ( ( c = decode.get ( ) ) != -1 ) {
-                    tmp += c;
-                }
-            } else if ( encoding[0] == 'Q' ) {		// Quote-Printable编码
-                QuotedPrintableDecoder qpd (iss);
-                while ( ( c = qpd.get ( ) ) != -1  ) {
-                    tmp += c;
-                }
-
-            } else {				// 编码未知, 直接返回原字符串
-                outs = ins;
-                return;
-            }
-
-            // 标题转换字符集
-            if ( charset != charset_to ) {
-                std::transform(charset.begin (), charset.end (), charset.begin (), ::toupper);
-                if( charset == "GB2312" ){
-                    std::cout << "charset == gb2312" << std::endl;
-                    try{
-                        outs = GB2312ToUTF8 (tmp.c_str ());
-                    }catch( std::exception & e ){
-                        std::cout << e.what () << std::endl;
-                    }
-                }else{
-                    try {
-                        TextEncoding & enc = TextEncoding::byName (charset);
-                        TextEncoding & dec = TextEncoding::byName (charset_to);
-                        TextConverter converter (enc, dec);
-                        converter.convert (tmp, outs);
-                    } catch ( ... ) {			// 无法转换的未知字符集(包括GB2312)
-                        std::cout << "Unknown charset " << charset << std::endl;
-                        std::cout << "Content: " << tmp << std::endl;
-                        outs = tmp;
-                    }
-                }
-            } else {			// 不需要转换字符集
-                outs = tmp;
-            }
-
-        }
-
-        std::string IMAPClientSession::decoder (const std::string & _text, const std::string& charset ){
-            std::string tmpout, outs, text = _text;
-            for ( ; ; ) {
-                auto start = text.find ("=?");	// 找不到则返回npos
-                if ( start == std::string::npos ) {		// 找不到=?, 不是MIME编码类型, 直接返回
-                    outs += text;
-                    break;
-                }
-                if ( start > 0 ) {
-                    outs += text.substr (0, start);
-                }
-
-                text = text.substr (start+2);		// 从=?之后开始查找其余信息
-
-                auto second = text.find ("?");	// 第二部分是字符集编码
-                if ( second == std::string::npos ) {
-                    outs += text;
-                    break;
-                }
-                auto third = text.find ("?", second+1);		// 第三部分是正文MIME编码
-                if ( third == std::string::npos ) {
-                    outs += text;
-                    break;
-                }
-                auto last = text.find ("?=", third+1);		// MIME编码结束标志
-                if ( last == std::string::npos ) {
-                    outs += text;
-                    break;
-                }
-                IMAPClientSession::decodeRFC2047 (text.substr (0, last), tmpout , charset);
-                outs += tmpout;
-
-                text = text.substr (last + 2);
-            }
-            return outs;
-        }
-
 
     }
 }

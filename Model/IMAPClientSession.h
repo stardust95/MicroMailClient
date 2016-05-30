@@ -73,7 +73,6 @@ namespace Poco {
             explicit IMAPClientSession (const StreamSocket& socket);
             IMAPClientSession (const std::string& host, Poco::UInt16 port = IMAP_PORT);
 
-
             virtual bool checkCapability (const std::string& cap);
 
             ~IMAPClientSession ( );
@@ -115,9 +114,6 @@ namespace Poco {
             std::string host ( ) { return _host; }
 
 
-            static void decodeRFC2047 (const std::string & ins, std::string & outs, const std::string & charset = "UTF-8");
-
-            static std::string decoder (const std::string & _text, const std::string& charset = "UTF-8");
         private:
             void moveMessage_without_MOVE (const std::string& uid, const std::string& from_folder, const std::string& to_folder);
             PartInfo parseBodyStructure (std::istringstream& src);

@@ -20,58 +20,6 @@
 
 using namespace std;
 
-
-
-QString host = "pop3.qq.com";
-
-QString user = "928977187@qq.com";
-
-QString passwd = "DCW1995996987";
-
-
-void test(){
-    //cout << test << endl;
-    Poco::Net::IMAPClientSession imap (host.toStdString ());
-
-    //cin >> passwd;
-
-    imap.login (user.toStdString (), passwd.toStdString ());
-
-    ofstream output ("output.txt");
-
-    Poco::Net::IMAPClientSession::FolderInfoVec folders;
-
-    Poco::Net::IMAPClientSession::MessageInfoVec msgs;
-
-    std::vector<std::string> uids;
-
-    imap.listFolders ("", folders);
-
-    for ( auto fd : folders ) {
-        cout << fd.name << endl;
-
-        imap.listMessages (fd.name, uids);
-
-        imap.getMessages (fd.name, uids, msgs);
-
-        std::string msg;
-
-        for ( auto info : msgs) {
-            //if( info.parts.childs.size() <= 3 )
-                //continue;
-
-            cout << info.subject << endl;
-            imap.loadMessage (fd.name, info);
-            output << msg << endl << "===============" << endl;
-        }
-        break;
-    }
-
-    return ;
-}
-
-
-
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
@@ -81,14 +29,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     Models::MailListModel model;
 
-    MAILBODY_PTR_QLIST list;
-
 //    model.login (user, passwd, host, "143");
-
-//    for(int i=1; i<=10; i++)
-//        list.push_back (MAILBODY_PTR::create("Subject" + QString::number (i)));
-
-//    model.buildMailList (list);
 
     engine.rootContext ()->setContextProperty("mailListModel", &model);
 

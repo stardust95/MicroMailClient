@@ -101,6 +101,8 @@ public:
 //        return attachements;
 //    }
 
+//    void addAttachment()
+
 private:
 
     QString _subject;

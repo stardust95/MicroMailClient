@@ -1,9 +1,12 @@
 #ifndef ACCOUNT_H
 #define ACCOUNT_H
+
 #include <QList>
 #include <QSharedPointer>
 #include <qvector.h>
+
 #include<iostream>
+
 
 class Account: public QObject
 {
