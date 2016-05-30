@@ -31,7 +31,7 @@ public:
         this->_port = port;
     }
 	
-    bool login(QString _user, QString _passwd) override{
+    bool login(QString _user, QString _passwd, bool p) override{
         try{
             _session->login(_user.toStdString (), _passwd.toStdString ());
 

@@ -1,9 +1,10 @@
 #include "IMAPClientSession.h"
+#include "Utils.h"
 
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/Net/QuotedPrintableDecoder.h"
 #include "Poco/Base64Decoder.h"
-#include "Poco/StringTokenizer.h"
+#include "Poco/Stringtokenizer.h"
 #include "Poco/String.h"
 #include "Poco/Net/DialogSocket.h"
 #include "Poco/TextEncoding.h"
@@ -144,7 +145,7 @@ namespace Poco {
 
             for (auto s: data) {
                 std::vector<std::string> tokens1;
-                tokenize(s, tokens1, std::string(" "), std::string("\"\""));
+                Utils::tokenize(s, tokens1, std::string(" "), std::string("\"\""));
                 if (tokens1[0] == "*" && tokens1[1] == "CAPABILITY") {
                     raw = s;
                     break;
@@ -154,7 +155,7 @@ namespace Poco {
             if (raw == "") throw NetException("No capability response", response);
 
             // Parse capability.
-            tokenize(raw, tokens, std::string(" "), std::string("\"\""));
+            Utils::tokenize(raw, tokens, std::string(" "), std::string("\"\""));
             if (tokens.size() < 3)  throw NetException("No capability response", response);
             for (auto c : tokens) {
                 if (c == "CAPABILITY" || c=="*") continue;
@@ -244,8 +245,8 @@ namespace Poco {
             {
                 std::vector<std::string> tokens, tokens2;
                 FolderInfo  f;
-                tokenize(r, tokens, std::string(" "), std::string("\"\""));
-                tokenize(r.substr(r.find(")")), tokens2, std::string(" "), std::string("\"\""));
+                Utils::tokenize(r, tokens, std::string(" "), std::string("\"\""));
+                Utils::tokenize(r.substr(r.find(")")), tokens2, std::string(" "), std::string("\"\""));
 
                 f.name = trimchar(tokens2[2],'"');
                 f.flags = tokens[2];
@@ -275,7 +276,7 @@ namespace Poco {
             {
                 auto r = data[j];
                 std::vector<std::string> tokens;
-                tokenize(r, tokens, std::string(" "), std::string("\"\""));
+                Utils::tokenize(r, tokens, std::string(" "), std::string("\"\""));
                 if (tokens[1] != "SEARCH") continue;
                 for (int i = 2; i < tokens.size(); i++) {
                     uids.push_back(tokens[i]);
@@ -492,12 +493,12 @@ namespace Poco {
             {
                 auto r = data[j];
                 std::vector<std::string> tokens, tokens2, tokens3;
-                tokenize(r + ")", tokens, std::string(" "), std::string("()"), true);
+                Utils::tokenize(r + ")", tokens, std::string(" "), std::string("()"), true);
                 MessageInfo  m;
                 if (tokens[0]!="*") throw NetException("Cannot fetch messages", r);
 
                 m.uid = tokens[1];
-                tokenize(tokens[3], tokens2, std::string(" "), std::string("\"\"()[]"), true);
+                Utils::tokenize(tokens[3], tokens2, std::string(" "), std::string("\"\"()[]"), true);
                 for (int i = 0; i < tokens2.size();i++)
                 {
                     std::string cmd = toUpper(tokens2[i]);
@@ -541,7 +542,7 @@ namespace Poco {
                     }
 
                     std::vector<std::string> tokens4;
-                    tokenize(r, tokens4, std::string(":"), std::string("()"));
+                    Utils::tokenize(r, tokens4, std::string(":"), std::string("()"));
                     std::string cmd = toUpper(tokens4[0]);
 
                     if (tokens4.size() < 2) continue;

@@ -21,7 +21,7 @@ POCOHOME = "C:\Users\37567\Documents\Visual Studio 2015\Projects\MicroMailClient
 
 INCLUDEPATH += "$${POCOHOME}\include"
 
-LIBS += -L"$${POCOHOME}\lib"
+LIBS += -L"$${POCOHOME}\Lib"
 
 # Default rules for deployment.
 
@@ -37,4 +37,6 @@ HEADERS += \
     Model/Utils.h \
     Model/IMAPClientSession.h \
     Model/ReceiveMailClient.h \
-    Model/SendMailClient.h
+    Model/SendMailClient.h \
+    Model/SMTPClient.h \
+    Model/POP3Client.h

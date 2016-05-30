@@ -22,11 +22,11 @@ using namespace std;
 
 
 
-QString host = "imap.qq.com";
+QString host = "pop3.qq.com";
 
-QString user = "375670450@qq.com";
+QString user = "928977187@qq.com";
 
-QString passwd = "";
+QString passwd = "DCW1995996987";
 
 
 void test(){
@@ -76,8 +76,8 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    QtWebEngine::initialize ();
 
+    QtWebEngine::initialize ();
     QQmlApplicationEngine engine;
     Models::MailListModel model;
 
