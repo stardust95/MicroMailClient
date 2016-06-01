@@ -24,7 +24,8 @@
 #include<vector>
 #include<sstream>
 #include<fstream>
-#include<qdebug.h>
+#include<QtDebug>
+#include<QObject>
 
 using namespace std;
 
@@ -108,18 +109,37 @@ int main(int argc, char *argv[])
 
 //    return app.exec();
 
-    QString s("E:/oopProject/MicroMailClient-UML-1.5.pdf");
-    QFile f(s);
-    f.open(QIODevice::ReadOnly);
-    cout<<f.isOpen();
+//    QString s("E:/oopProject/MicroMailClient-UML-1.5.pdf");
+//    QFile f(s);
+//    f.open(QIODevice::ReadOnly);
+//    cout<<f.isOpen();
 
-    Attachment a("abc");
-    a.setFilePath("E:/oopProject/test.txt");
-    QByteArray b("123");
+//    Attachment a("abc");
+//    a.setFilePath("E:/oopProject/test.txt");
+//    QByteArray b("123");
 
-    a.Download(b);
-    b = "456";
-    a.Download(b);
+//    a.Download(b);
+//    b = "456";
+//    a.Download(b);
+    Account a;
+
+    a.AddContact("aebcytd");
+    a.AddContact("abdde");
+    a.AddContact("aced");
+    a.AddContact("vcxrdwa");
+    a.AddContact("abcd");
+    a.AddContact("abd");
+    a.AddContact("acd");
+
+    a.AddContact("bdefa");
+
+    a.AddContact("adsf");
+    a.AddContact("ertfggg");
+    QStringList src = a.getContacts();
+
+    QStringList result = Utils::ListContacts("abc", src);
+    for(auto i = result.begin(); i != result.end(); i++)
+        cout << i->toStdString() <<endl;
 }
 
 

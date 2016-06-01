@@ -8,6 +8,8 @@
 #include <QSharedPointer>
 #include <QDebug>
 
+using namespace std;
+
 class Account: public QObject
 {
     Q_OBJECT
@@ -33,7 +35,9 @@ class Account: public QObject
     QString _pop3Host;
     QString _imapHost;
     bool _requireSSL;
-    QVector<QString> _contacts;
+    QStringList _contacts;
+
+
 
 public:
     Account() {}
@@ -101,6 +105,10 @@ public:
 
     void setRequireSSL(bool i) {
         _requireSSL = i;
+    }
+
+    QStringList getContacts() const {
+        return _contacts;
     }
 
 

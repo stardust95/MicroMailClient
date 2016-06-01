@@ -30,6 +30,11 @@
 #include <algorithm>
 #include <iterator>
 
+#include <QString>
+#include <QStringList>
+#include <QList>
+#include <QDebug>
+
 using Poco::StringTokenizer;
 using Poco::NumberFormatter;
 using Poco::DateTimeFormatter;
@@ -46,6 +51,88 @@ using Poco::toUpper;
 
 
 class Utils{
+private:   //used for fuzzy search
+
+    const static int level = 2;  //0~4
+
+    struct check {
+        bool _satisfy;
+        int _degree;
+        QString _string;
+    };
+
+    static check _satisfyFuzzy(const QString& key, const QString& src) {
+        int satisfy = 0;
+        int total = 0;
+        QString subString;
+        for(int i = 0; i < key.length() - 1; i++)
+            for(int j = i; j < key.length(); j++)
+            {
+                total++;
+                subString = key.mid(i, j-i+1);
+                if(src.contains(subString))
+                    satisfy++;
+            }
+
+        bool flag = false;
+
+        switch(level) {  //等级可以自己修改
+            case(0):
+                if(satisfy >= 1) flag = true;
+                break;
+            case(1):
+                if(satisfy >= key.length()/2) flag = true;
+                break;
+            case(2):
+                if((float)satisfy >= key.length()*0.7) flag = true;
+                break;
+            case(3):
+                if((float)satisfy >= total*0.6) flag = true;
+                break;
+            case(4):
+                if(satisfy == total) flag = true;
+                break;
+        }
+        if(flag)
+            return {true, satisfy, src};
+        else
+            return {false, 0, NULL};
+
+    }
+
+    static bool myCompare(const check & p, const check & q) {  //check if a < b
+        if(q._degree > p._degree)
+            return true;
+        else if(q._degree == p._degree)
+            if(q._string.length() < p._string.length())
+                return true;
+            else
+                return false;
+        return false;
+    }
+
+
+public:
+
+    static QStringList ListContacts(const QString& key, const QStringList& _contacts) {
+        QVector<check> tmp;
+        QStringList result;
+        check temp;
+        foreach(QString src, _contacts) {
+            if((temp = _satisfyFuzzy(key, src))._satisfy) {
+                int i;
+                for(i = 0; i < tmp.size(); i++)
+                    if(myCompare(tmp[i], temp)) break;
+                tmp.insert(i, temp);
+            }
+        }
+        foreach (check i, tmp) {
+            result.push_back(i._string);
+        }
+        return result;
+    }
+
+
 public:
     typedef Poco::Net::MediaType MediaType;
 
