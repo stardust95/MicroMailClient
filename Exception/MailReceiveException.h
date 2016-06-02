@@ -6,6 +6,7 @@ class MailReceiveException: public MailClientException
 {
 public:
 <<<<<<< HEAD
+<<<<<<< HEAD
     MailReceiveException() {}
     MailReceiveException(const string& exc): MailClientException(exc.c_str()) {}
     MailClientException(const MailClientException& mce): MailClientException(mce) {}
@@ -28,6 +29,20 @@ public:
     const char* what() override{
         return message.c_str();
 >>>>>>> repairing_pop3_decode
+=======
+    MailReceiveException() {
+        message = "MailReceiveException: " + message;
+    }
+    MailReceiveException(const string& exc): MailClientException(exc.c_str()) {
+        message = "MailReceiveException: " + message;
+    }
+    MailReceiveException(const MailReceiveException& mce): MailClientException(mce) {
+        message = "MailReceiveException: " + message;
+    }
+    ~MailReceiveException() override {}
+    const char* what() override{
+        return message.c_str();
+>>>>>>> mxydls-master
     }
 };
 
