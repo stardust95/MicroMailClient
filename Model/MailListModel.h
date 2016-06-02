@@ -23,16 +23,7 @@
 
 #include <fstream>
 
-<<<<<<< HEAD
-#include "MailBody.h"
-#include "IMAPClient.h"
-#include "ReceiveMailClient.h"
-#include "SendMailClient.h"
-#include "POP3Client.h"
-#include "Utils.h"
-=======
 //#include "SMTPClient.h"
->>>>>>> repairing_pop3_decode
 
 namespace Models{
 
@@ -316,20 +307,11 @@ namespace Models{
 /*
         Login and retrive all mails within folders.
 */
-<<<<<<< HEAD
-//            if( _receiveProtocol == Utils::ProtocolType::IMAP )
-                _receiveClient = QSharedPointer<POP3Client>::create(host, port);
-            // _sendClient = MAILCLIENT_PTR::create(host, port);
-
-            if( _receiveClient->login(user, passwd,true) ){          // if login success, retrive mails
-//            if( _sendClient->login (user, passwd) && _receiveClient->login (user,  passwd) ){
-=======
             try{
 
     //            if( _receiveProtocol == Utils::ProtocolType::IMAP )
                     _receiveClient = QSharedPointer<IMAPClient>::create(host, port);
                 // _sendClient = MAILCLIENT_PTR::create(host, port);
->>>>>>> repairing_pop3_decode
 
                 if( _receiveClient->login(user, passwd,true) ){          // if login success, retrive mails
     //            if( _sendClient->login (user, passwd) && _receiveClient->login (user,  passwd) ){

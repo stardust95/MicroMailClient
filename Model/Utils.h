@@ -30,14 +30,11 @@
 #include <algorithm>
 #include <iterator>
 
-<<<<<<< HEAD
-=======
 #include <QString>
 #include <QStringList>
 #include <QList>
 #include <QDebug>
 
->>>>>>> mxydls-master
 using Poco::StringTokenizer;
 using Poco::NumberFormatter;
 using Poco::DateTimeFormatter;
@@ -79,7 +76,7 @@ private:   //used for fuzzy search
 
         bool flag = false;
 
-        switch(level) {  //ç­‰çº§å¯ä»¥è‡ªå·±ä¿®æ”¹
+        switch(level) {  //µÈ¼¶¿ÉÒÔ×Ô¼ºÐÞ¸Ä
             case(0):
                 if(satisfy >= 1) flag = true;
                 break;
@@ -143,10 +140,7 @@ public:
         SMTP, POP3, IMAP
     };
 
-<<<<<<< HEAD
-=======
-    // GB2312è½¬UTF8
->>>>>>> mxydls-master
+    // GB2312×ªUTF8
     static std::string GB2312ToUTF8(const char* lpszGb32Text)
     {
         int nUnicodeBufLen = MultiByteToWideChar(CP_ACP, 0, lpszGb32Text, -1, 0, 0);
@@ -209,39 +203,23 @@ public:
 
         std::istringstream iss (text);
 
-<<<<<<< HEAD
         if ( encoding[0] == 'B' ) {	// Base64±àÂë
-=======
-        if ( encoding[0] == 'B' ) {	// Base64ç¼–ç 
->>>>>>> mxydls-master
             Base64Decoder decode (iss);
             while ( ( c = decode.get ( ) ) != -1 ) {
                 tmp += c;
             }
-<<<<<<< HEAD
         } else if ( encoding[0] == 'Q' ) {		// Quote-Printable±àÂë
-=======
-        } else if ( encoding[0] == 'Q' ) {		// Quote-Printableç¼–ç 
->>>>>>> mxydls-master
             QuotedPrintableDecoder qpd (iss);
             while ( ( c = qpd.get ( ) ) != -1  ) {
                 tmp += c;
             }
 
-<<<<<<< HEAD
         } else {				// ±àÂëÎ´Öª, Ö±½Ó·µ»ØÔ­×Ö·û´®
-=======
-        } else {				// ç¼–ç æœªçŸ¥, ç›´æŽ¥è¿”å›žåŽŸå­—ç¬¦ä¸²
->>>>>>> mxydls-master
             outs = ins;
             return;
         }
 
-<<<<<<< HEAD
         // ±êÌâ×ª»»×Ö·û¼¯
-=======
-        // æ ‡é¢˜è½¬æ¢å­—ç¬¦é›†
->>>>>>> mxydls-master
         if ( charset != charset_to ) {
             std::transform(charset.begin (), charset.end (), charset.begin (), ::toupper);
             if( charset == "GB2312" ){
@@ -257,39 +235,23 @@ public:
                     TextEncoding & dec = TextEncoding::byName (charset_to);
                     TextConverter converter (enc, dec);
                     converter.convert (tmp, outs);
-<<<<<<< HEAD
                 } catch ( ... ) {			// ÎÞ·¨×ª»»µÄÎ´Öª×Ö·û¼¯(°üÀ¨GB2312)
-=======
-                } catch ( ... ) {			// æ— æ³•è½¬æ¢çš„æœªçŸ¥å­—ç¬¦é›†(åŒ…æ‹¬GB2312)
->>>>>>> mxydls-master
                     std::cout << "Unknown charset " << charset << std::endl;
                     std::cout << "Content: " << tmp << std::endl;
                     outs = tmp;
                 }
             }
-<<<<<<< HEAD
         } else {			// ²»ÐèÒª×ª»»×Ö·û¼¯
-=======
-        } else {			// ä¸éœ€è¦è½¬æ¢å­—ç¬¦é›†
->>>>>>> mxydls-master
             outs = tmp;
         }
 
     }
 
-<<<<<<< HEAD
-    static std::string decoder (const std::string & _text, const std::string& to_charset = "UTF-8"){
+    static std::string decoder (const std::string & _text, const std::string& charset = "UTF-8"){
         std::string tmpout, outs, text = _text;
         for ( ; ; ) {
             auto start = text.find ("=?");	// ÕÒ²»µ½Ôò·µ»Ønpos
             if ( start == std::string::npos ) {		// ÕÒ²»µ½=?, ²»ÊÇMIME±àÂëÀàÐÍ, Ö±½Ó·µ»Ø
-=======
-    static std::string decoder (const std::string & _text, const std::string& charset = "UTF-8"){
-        std::string tmpout, outs, text = _text;
-        for ( ; ; ) {
-            auto start = text.find ("=?");	// æ‰¾ä¸åˆ°åˆ™è¿”å›žnpos
-            if ( start == std::string::npos ) {		// æ‰¾ä¸åˆ°=?, ä¸æ˜¯MIMEç¼–ç ç±»åž‹, ç›´æŽ¥è¿”å›ž
->>>>>>> mxydls-master
                 outs += text;
                 break;
             }
@@ -297,42 +259,24 @@ public:
                 outs += text.substr (0, start);
             }
 
-<<<<<<< HEAD
             text = text.substr (start+2);		// ´Ó=?Ö®ºó¿ªÊ¼²éÕÒÆäÓàÐÅÏ¢
 
             auto second = text.find ("?");	// µÚ¶þ²¿·ÖÊÇ×Ö·û¼¯±àÂë
-=======
-            text = text.substr (start+2);		// ä»Ž=?ä¹‹åŽå¼€å§‹æŸ¥æ‰¾å…¶ä½™ä¿¡æ¯
-
-            auto second = text.find ("?");	// ç¬¬äºŒéƒ¨åˆ†æ˜¯å­—ç¬¦é›†ç¼–ç 
->>>>>>> mxydls-master
             if ( second == std::string::npos ) {
                 outs += text;
                 break;
             }
-<<<<<<< HEAD
             auto third = text.find ("?", second+1);		// µÚÈý²¿·ÖÊÇÕýÎÄMIME±àÂë
-=======
-            auto third = text.find ("?", second+1);		// ç¬¬ä¸‰éƒ¨åˆ†æ˜¯æ­£æ–‡MIMEç¼–ç 
->>>>>>> mxydls-master
             if ( third == std::string::npos ) {
                 outs += text;
                 break;
             }
-<<<<<<< HEAD
             auto last = text.find ("?=", third+1);		// MIME±àÂë½áÊø±êÖ¾
-=======
-            auto last = text.find ("?=", third+1);		// MIMEç¼–ç ç»“æŸæ ‡å¿—
->>>>>>> mxydls-master
             if ( last == std::string::npos ) {
                 outs += text;
                 break;
             }
-<<<<<<< HEAD
-            Utils::decodeRFC2047 (text.substr (0, last), tmpout , to_charset);
-=======
             Utils::decodeRFC2047 (text.substr (0, last), tmpout , charset);
->>>>>>> mxydls-master
             outs += tmpout;
 
             text = text.substr (last + 2);

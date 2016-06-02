@@ -27,7 +27,7 @@ private:
 
     Q_PROPERTY(QString datetime READ getDateTime CONSTANT)
 
-    Q_PROPERTY(bool isread READ getIsread WRITE setIsread)
+    Q_PROPERTY(bool isread READ getIsread WRITE setIsread CONSTANT)
 
 //    Q_PROPERTY(QList<QString> recipients READ getRecipient CONSTANT)
 

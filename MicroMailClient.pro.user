@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<<<<<<< HEAD
-<!-- Written by QtCreator 3.6.1, 2016-05-28T22:26:49. -->
-=======
-<!-- Written by QtCreator 3.6.1, 2016-06-02T10:37:30. -->
->>>>>>> repairing_pop3_decode
+<!-- Written by QtCreator 3.6.1, 2016-06-02T11:54:23. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -287,8 +283,8 @@
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">MicroMailClient</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:C:/Users/37567/Documents/Visual Studio 2015/Projects/MicroMailClient-QT/MicroMailClient/MicroMailClient.pro</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">MicroMailClient2</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:C:/Users/37567/Documents/Visual Studio 2015/Projects/MicroMailClient-QT/MicroMailClient-150c57313d221f5114de0d5efd91295707df5a6d/MicroMailClient.pro</value>
     <value type="bool" key="QmakeProjectManager.QmakeRunConfiguration.UseLibrarySearchPath">true</value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.CommandLineArguments"></value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.ProFile">MicroMailClient.pro</value>
