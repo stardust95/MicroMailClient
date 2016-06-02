@@ -1,6 +1,14 @@
 #ifndef MAILLISTMODEL_H
 #define MAILLISTMODEL_H
 
+#include "MailBody.h"
+#include "IMAPClient.h"
+#include "ReceiveMailClient.h"
+#include "SendMailClient.h"
+#include "POP3Client.h"
+#include "Utils.h"
+
+
 #include <QAbstractItemModel>
 #include <QAbstractListModel>
 #include <QVariant>
@@ -15,12 +23,16 @@
 
 #include <fstream>
 
+<<<<<<< HEAD
 #include "MailBody.h"
 #include "IMAPClient.h"
 #include "ReceiveMailClient.h"
 #include "SendMailClient.h"
 #include "POP3Client.h"
 #include "Utils.h"
+=======
+//#include "SMTPClient.h"
+>>>>>>> repairing_pop3_decode
 
 namespace Models{
 
@@ -262,15 +274,20 @@ namespace Models{
 
                 int cur_count = _mails.length ();
 
-//                auto folder = this->getFolders ().at (folderIndex);             // in login function has got folders
+                auto folder = this->getFolders ().at (folderIndex);             // in login function has got folders
 
-                QString folder = "INBOX";
+//                QString folder = "INBOX";
 
                 int total = _receiveClient->selectFolder(folder);
 
                 MAILBODY_PTR_QLIST tmplist;
 
+
+                qDebug() << "do Build Mail List in folder " << folder << "\n";
+
                 while( _receiveClient->getMailBodies ( tmplist, 1) > 0 ){      // if there exists mails not loaded
+
+                    qDebug() << "_receiveClient->getMailBodies ( tmplist, 1) > 0" << "\n";
 
                     this->beginResetModel ();
 
@@ -299,31 +316,46 @@ namespace Models{
 /*
         Login and retrive all mails within folders.
 */
+<<<<<<< HEAD
 //            if( _receiveProtocol == Utils::ProtocolType::IMAP )
                 _receiveClient = QSharedPointer<POP3Client>::create(host, port);
             // _sendClient = MAILCLIENT_PTR::create(host, port);
 
             if( _receiveClient->login(user, passwd,true) ){          // if login success, retrive mails
 //            if( _sendClient->login (user, passwd) && _receiveClient->login (user,  passwd) ){
+=======
+            try{
 
-                // initialize the user info
-                _user = ACCOUNT_PTR::create();
+    //            if( _receiveProtocol == Utils::ProtocolType::IMAP )
+                    _receiveClient = QSharedPointer<IMAPClient>::create(host, port);
+                // _sendClient = MAILCLIENT_PTR::create(host, port);
+>>>>>>> repairing_pop3_decode
 
-                // get mail folders
-                QList<QString> folders;
-                _receiveClient->getFolders (folders);          // Assume that POP3 only has one folder "INBOX"
+                if( _receiveClient->login(user, passwd,true) ){          // if login success, retrive mails
+    //            if( _sendClient->login (user, passwd) && _receiveClient->login (user,  passwd) ){
 
-                for(auto folder: folders){
-                    MAILBODY_PTR_QLIST tmp;
-                    this->_foldersMap.insert (folder, tmp);
+                    // initialize the user info
+                    _user = ACCOUNT_PTR::create();
+
+                    // get mail folders
+                    QList<QString> folders;
+                    _receiveClient->getFolders (folders);          // Assume that POP3 only has one folder "INBOX"
+
+                    for(auto folder: folders){
+                        MAILBODY_PTR_QLIST tmp;
+                        this->_foldersMap.insert (folder, tmp);
+                    }
+                    emit(foldersChanged ());
+
+                    // initially load the mails in first folder
+    //                if( folders.size () > 0 )
+    //                    QtConcurrent::run(this, &MailListModel::doBuildMailList, 0);
+
+                    return true;
                 }
-                emit(foldersChanged ());
-
-                // initially load the mails in first folder
-//                if( folders.size () > 0 )
-//                    QtConcurrent::run(this, &MailListModel::doBuildMailList, 0);
-
-                return true;
+            }
+            catch( ... ){
+                qDebug() << "MailListModel::login Exception " << "\n";
             }
 
             return false;

@@ -21,7 +21,11 @@ POCOHOME = "C:\Users\37567\Documents\Visual Studio 2015\Projects\MicroMailClient
 
 INCLUDEPATH += "E:\oopProject\pocolib-all\include"
 
+<<<<<<< HEAD
 LIBS += -L"E:\oopProject\pocolib-all\lib" -lPocoFoundationd
+=======
+LIBS += -L"$${POCOHOME}\Lib"
+>>>>>>> repairing_pop3_decode
 
 # Default rules for deployment.
 
@@ -38,7 +42,12 @@ HEADERS += \
     Model/IMAPClientSession.h \
     Model/ReceiveMailClient.h \
     Model/SendMailClient.h \
+<<<<<<< HEAD
     Exception/MailClientException.h \
     Exception/MailGenerationException.h \
     Exception/MailSendException.h \
     Exception/MailReceiveException.h
+=======
+    Model/SMTPClient.h \
+    Model/POP3Client.h
+>>>>>>> repairing_pop3_decode
