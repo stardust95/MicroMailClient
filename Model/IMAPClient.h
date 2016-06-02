@@ -1,6 +1,12 @@
 #ifndef IMAPCLIENT_H
 #define IMAPCLIENT_H
 
+#include "Account.h"
+#include "ReceiveMailClient.h"
+#include "IMAPClientSession.h"
+#include "MailBody.h"
+#include "Attachment.h"
+
 #include <QDateTime>
 #include <QString>
 #include <QSharedPointer>
@@ -8,11 +14,6 @@
 #include <string>
 #include <vector>
 
-#include "Account.h"
-#include "ReceiveMailClient.h"
-#include "IMAPClientSession.h"
-#include "MailBody.h"
-#include "Attachment.h"
 
 
 typedef std::vector<Poco::Net::IMAPClientSession::FolderInfo> FolderInfoVec;

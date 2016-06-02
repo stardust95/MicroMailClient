@@ -2,6 +2,9 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>MyButton.qml</file>
+        <file>AccountLogin.qml</file>
+        <file>NewMailEdit.qml</file>
+        <file>MailView.qml</file>
     </qresource>
     <qresource prefix="/icons">
         <file alias="add">icons/add.svg</file>

@@ -1,6 +1,14 @@
 #ifndef MAILLISTMODEL_H
 #define MAILLISTMODEL_H
 
+#include "MailBody.h"
+#include "IMAPClient.h"
+#include "ReceiveMailClient.h"
+#include "SendMailClient.h"
+#include "POP3Client.h"
+#include "Utils.h"
+
+
 #include <QAbstractItemModel>
 #include <QAbstractListModel>
 #include <QVariant>
@@ -15,13 +23,7 @@
 
 #include <fstream>
 
-#include "MailBody.h"
-#include "IMAPClient.h"
-#include "ReceiveMailClient.h"
-#include "SendMailClient.h"
-#include "POP3Client.h"
 //#include "SMTPClient.h"
-#include "Utils.h"
 
 namespace Models{
 
@@ -308,7 +310,7 @@ namespace Models{
             try{
 
     //            if( _receiveProtocol == Utils::ProtocolType::IMAP )
-                    _receiveClient = QSharedPointer<POP3Client>::create(host, port);
+                    _receiveClient = QSharedPointer<IMAPClient>::create(host, port);
                 // _sendClient = MAILCLIENT_PTR::create(host, port);
 
                 if( _receiveClient->login(user, passwd,true) ){          // if login success, retrive mails

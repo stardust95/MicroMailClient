@@ -43,64 +43,9 @@ ApplicationWindow {
         tabHighlightColor: "Zwhite"
     }
 
-    Dialog {
-        id: colorPicker
-        title: "Pick color"
-
-        positiveButtonText: "Done"
-
-        MenuField {
-            id: selection
-            model: ["Primary color", "Accent color", "Background color"]
-            width: Units.dp(160)
-        }
-
-        Grid {
-            columns: 7
-            spacing: Units.dp(8)
-
-            Repeater {
-                model: [
-                    "red", "pink", "purple", "deepPurple", "indigo",
-                    "blue", "lightBlue", "cyan", "teal", "green",
-                    "lightGreen", "lime", "yellow", "amber", "orange",
-                    "deepOrange", "grey", "blueGrey", "brown", "black",
-                    "white"
-                ]
-
-                Rectangle {
-                    width: Units.dp(30)
-                    height: Units.dp(30)
-                    radius: Units.dp(2)
-                    color: Palette.colors[modelData]["500"]
-                    border.width: modelData === "white" ? Units.dp(2) : 0
-                    border.color: Theme.alpha("#000", 0.26)
-
-                    Ink {
-                        anchors.fill: parent
-
-                        onPressed: {
-                            switch(selection.selectedIndex) {
-                                case 0:
-                                    theme.primaryColor = parent.color
-                                    break;
-                                case 1:
-                                    theme.accentColor = parent.color
-                                    break;
-                                case 2:
-                                    theme.backgroundColor = parent.color
-                                    break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
     initialPage: Tab{
         sourceComponent: mainWindowComponent
+
     }
 
     Component{
@@ -129,7 +74,7 @@ ApplicationWindow {
                 }
                onClicked: {
                    menuSidebar.expanded = false
-                   colorPicker.show()
+
                }
             }
 
@@ -162,7 +107,7 @@ ApplicationWindow {
                         label:  "New Mail"
 
                         onClicked: {
-                            colorPicker.show()
+                            pageLoader.newMail()
                         }
 
                     }
@@ -178,6 +123,12 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         source: "/icons/person_add"
                         label: "Add Account"
+
+                        onClicked: {
+                            loginDialog.visible = true
+                            loginDialog.show()
+                        }
+
                     }
 
                     ListItem.SectionHeader{
@@ -305,6 +256,8 @@ ApplicationWindow {
 
             }
 
+
+
             Rectangle{
 
                 id: mailListColumn
@@ -369,6 +322,11 @@ ApplicationWindow {
                                     source: "/icons/search"
 
                                 }
+
+                                onClicked: {
+                                    console.log("Search Button Clicked")
+                                }
+
                             }
 
                         }
@@ -390,7 +348,10 @@ ApplicationWindow {
                                     anchors.margins: Units.dp(4)
                                     source: "/icons/refresh"
                                 }
-                                onClicked: mailListModel.login(user, passwd, host, port)
+                                onClicked: {
+                                    console.log("refresh button onclick")
+                                    mailListModel.login(user, passwd, host, port)
+                                }
 
                             }
                             Button{
@@ -405,7 +366,8 @@ ApplicationWindow {
                                     source: "/icons/select"
                                 }
                                 onClicked: {
-                                    alertNoTitleBar.show()
+                                        console.log("select button onclick")
+//                                    alertNoTitleBar.show()
                                 }
                             }
                         }
@@ -467,7 +429,10 @@ ApplicationWindow {
                         onClicked: {
                             model.mail_isread = true;           // update isread
                             selectedMailIndex = index;
-                            mailWebView.loadHtml(mailListModel.getHTMLContent(index));
+
+                            pageLoader.changeMail(index)
+
+//                            pageLoader.item.mailWebView.loadHtml(mailListModel.getHTMLContent(index));
                         }
 
                        Rectangle{
@@ -529,128 +494,47 @@ ApplicationWindow {
                 }
             }
 
-            Rectangle{
 
-                    id: mailView
+            Loader{
 
-                    anchors.left: mailListColumn.right
+                id: pageLoader
 
-                    height: parent.height
+                anchors.left: mailListColumn.right
 
-                    width: parent.width - mailListColumn.x - mailListColumn.width       // How to simplify?
+                height: parent.height
 
-        //            color: Theme.backgroundColor
+                width: parent.width - mailListColumn.x - mailListColumn.width       // How to simplify?
 
-                    ColumnLayout{
+                //                visible: selectedMailIndex >= 0
 
-                        spacing: Units.dp(8)
+                source: Qt.resolvedUrl("NewMailEdit.qml")
+//                source: Qt.resolvedUrl("MailView.qml")
 
-                        anchors.fill: parent
-                        anchors.margins: Units.dp(10)
-                        anchors.topMargin: 0
-
-                        visible: selectedMailIndex >= 0
-
-                        RowLayout{
-                            id : mailViewToolBar
-
-                            height: Units.dp(60)
-
-                            spacing: 0
-
-                            anchors.top : parent.top
-
-                            anchors.right: parent.right
-
-                            Layout.fillWidth : true
-
-                            MyButton{
-                                id : markAsUnreadButton
-                                label : "Mark As Unread"
-                                source: "/icons/mail_unread"
-                                Layout.preferredWidth: Units.dp(label.length*8 + 60)
-                            }
-
-                            MyButton{
-                                id : replyButton
-                                label: "Reply"
-                                source: "/icons/reply"
-                                Layout.preferredWidth: Units.dp(label.length*8 + 60)
-
-                            }
-
-                            MyButton{
-                                id : replyAllButton
-                                label: "Reply All"
-                                source: "/icons/reply_all"
-                                Layout.preferredWidth: Units.dp(label.length*8 + 60)
-                            }
-
-                        }
-
-
-                        ProgressBar{
-                            Layout.fillWidth: true
-                            value: mailWebView.loadProgress/100.0
-                        }
-
-                        RowLayout{
-                            id: mailHeaderView
-
-                            height: mailViewToolBar.height
-
-                            spacing: Units.dp(10)
-
-                            Rectangle{
-                                height: parent.height / 2
-                                width: height
-                                radius: height/2
-                                color: theme.accentColor
-                                Label{
-                                    anchors.centerIn: parent
-                                    text: mailHeaderSender.text.charAt(0)
-                                }
-                            }
-
-                            ColumnLayout{
-                                spacing: Units.dp(2)
-                                Label  {
-                                    id : mailHeaderSender
-                                    text : mailListModel.getSender(selectedMailIndex)
-                                    font.bold: true
-                                    font.pixelSize: Units.dp(20)
-                                }
-
-                                Label {
-                                    id : mailHeaderDatetime
-                                    text : mailListModel.getDateTime(selectedMailIndex)
-                                    font.pixelSize: Units.dp(13)
-                                }
-                            }
-
-                        }
-
-                        Label {
-                            text : mailListModel.getSubject(selectedMailIndex);
-                        }
-
-                        Label{
-                            text : mailListModel.getRecipients(selectedMailIndex);
-                        }
-
-                        WebEngineView{
-
-                            id: mailWebView
-
-                            Layout.fillHeight: true
-                            Layout.fillWidth: true
-        //                    url: "https://www.baidu.com/"
-                            url: ""
-                            onLoadProgressChanged: console.log(mailWebView.loadProgress)
-
-                        }
-                    }
+                function test() {
+                    console.log("parent.width = " + parent.width)
+                    console.log("mailListColumn.x = " + mailListColumn.x)
+                    console.log("mailListColumn.width = " + mailListColumn.width)
                 }
+                function changeMail(index) {
+                    item.loadHtml(mailListModel.getHTMLContent(index))
+                }
+
+                function newMail(){
+                    console.log("in Function newMail")
+                    setSource(Qt.resolvedUrl("NewMailEdit.qml"))
+                }
+
+            }
+
+            AccountLogin{
+                id: loginDialog
+
+                visible: false
+
+                signInButton.onClicked: mailListModel.login(user, passwd, host, port)
+
+                onClosed: visible = false
+            }
 
         }   // BackgroundRectangle
     }

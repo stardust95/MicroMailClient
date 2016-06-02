@@ -310,12 +310,19 @@ namespace Poco {
 
         void IMAPClientSession::loadMessage (const std::string & folder, MessageInfo & info) {
             std::string response, tmpdata;
-            std::vector<std::string> data, data1;
+            std::vector<std::string> data, data1, paths;
+
 
             if ( !sendCommand ("SELECT \"" + folder + "\"", response, data) ) throw NetException ("Can't select from folder", response);
 
             loadText (info.uid, info.parts, "", "HTML" , info.htmlText);
             loadText (info.uid, info.parts, "", "PLAIN" , info.text);
+
+            loadParts (info.uid, info.parts, "", "APPLICATION", paths);
+
+            for(auto str : paths){
+                std::cout << str << "\n";
+            }
 
 //            sendCommand ("CLOSE", response, data1);
 
@@ -397,12 +404,12 @@ namespace Poco {
             std::string type = _type;
 
             std::transform(type.begin (), type.end (), type.begin (), ::toupper );
-
+//            std::cout << attrs << "\n";
             std::string response;
             std::vector<std::string> result;
 
             if ( std::find (attrs.begin ( ), attrs.end ( ), type) != info.attributes.end ( ) ) {
-
+                std::cout << "attachment index = " << index << "\n";
                 paths.push_back (index);
 
             }

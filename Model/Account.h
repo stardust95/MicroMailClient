@@ -1,15 +1,32 @@
 #ifndef ACCOUNT_H
 #define ACCOUNT_H
-
 #include <QList>
 #include <QSharedPointer>
-#include <qvector.h>
+#include <QVector>
+#include <QVariant>
+#include <QSharedPointer>
+#include <QDebug>
 
-#include<iostream>
-
+#include <iostream>
 
 class Account: public QObject
 {
+    Q_OBJECT
+
+    Q_PROPERTY(QString username READ getUserName WRITE setUserName)
+
+    Q_PROPERTY(QString password READ getPassWord WRITE setPassWord)
+
+    Q_PROPERTY(QString mailhost READ getMailHost WRITE setMailHost)
+
+    Q_PROPERTY(QString smtphost READ getSMTPHost WRITE setSMTPHost)
+
+    Q_PROPERTY(QString pop3host READ getPOP3Host WRITE setPOP3Host)
+
+    Q_PROPERTY(QString imaphost READ getIMAPHost WRITE setIMAPHost)
+
+    Q_PROPERTY(bool requiressl READ getRequireSSL WRITE setRequireSSL)
+
     QString _userName;
     QString _passWord;
     QString _mailHost;
@@ -86,6 +103,8 @@ public:
     void setRequireSSL(bool i) {
         _requireSSL = i;
     }
+
+
 };
 
 
