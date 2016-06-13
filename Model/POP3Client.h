@@ -30,10 +30,10 @@ using Poco::Net::MultipartReader;
 class POP3Client : public ReceiveMailClient{
 private:
     typedef QSharedPointer<Poco::Net::POP3ClientSession> SESSION_PTR;
+
 public:
 
-    POP3Client(QString host,
-               QString port = QString::number (Poco::Net::POP3ClientSession::POP3_PORT)) {
+    POP3Client(QString host, QString port) {
         this->_session = SESSION_PTR::create(host.toStdString(),port.toInt());
         this->_host = host;
         this->_port = port;
@@ -133,23 +133,12 @@ public:
 
     }
 
+    int getAttachment(const Attachment &attach, std::string &outdata) override{
+        // unsupported
+        return 0;
+    }
+
     void readMultiPart(const MessageHeader & header, std::istream & stream, MAILBODY_PTR newmail){
-//       if( header.has ("Content-Disposition") ){
-//          string disp;
-//          string filename;
-//          string attachment;
-//          NameValueCollection params;
-
-//          MessageHeader::splitParameters(messageHeader["Content-Disposition"], disp, params);
-//          filename = params.get("filename", "nil");
-//          if(filename != "nil") {
-//            // Filename might be encoded in Base64 or QuotedPrintable
-
-//            _filenames.push_back(Utils::decoder (filename));
-//              StreamCopier::copyToString(stream, attachment);
-//              _attachments.push_back(attachment);
-//          }
-//       }
 
         std::string contentType = header.get ("Content-Type", "nil");
 

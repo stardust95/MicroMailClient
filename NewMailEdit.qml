@@ -1,4 +1,5 @@
 import QtQuick 2.6
+import QtQuick.Controls 1.4
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.1
 import Material 0.2
@@ -10,7 +11,7 @@ Item {
     id:newMailRectangle
 
     //@Zach's param
-    property alias isTextBold: newMailTextEdit.font.bold
+    property bool isTextBold: false
     property bool isTextItalic: false
     property bool isTextUnderline: false
     property bool isTextStrikeout: false
@@ -63,7 +64,19 @@ Item {
                         font.pixelSize: 30
                     }
 
-                    onClicked: isTextBold=isTextBold?false:true
+                    onClicked: {
+                        isTextBold=isTextBold?false:true
+                        var start = newMailTextEdit.selectionStart
+                        var end  = newMailTextEdit.selectionEnd
+                        var text = newMailTextEdit.selectedText
+                        newMailTextEdit.remove(start, end)
+                        newMailTextEdit.insert(start, "<strong>" + text +"</strong>")
+
+                        console.log(newMailTextEdit.text)
+                    }
+
+
+
                     backgroundColor: isTextBold?(Qt.darker(editTextButtonRectangle.color, 1.2)):editTextButtonRectangle.color
                 }
 
@@ -114,11 +127,23 @@ Item {
 
                 MenuField{
                     id:fontMenuField
+
 //                    anchors.left: textStrikeoutButton.right
                     height: Units.dp(40)
                     Layout.alignment: Qt.AlignLeft
                     model:["font1", "font2", "font3", "font4"]
+
+
+
+
+
+
+
+
+
                 }
+
+
 
                 MenuField{
                     id:fontSizeMenuField
@@ -160,6 +185,7 @@ Item {
                 Button{
                     id: textColorPickButton
                     width: Units.dp(45)
+
 
                     Layout.fillWidth: true
 
@@ -251,6 +277,10 @@ Item {
             font.family: "Microfsoft YaHei"
 
             color: "black"  // should be the picked color
+
+            Keys.onReleased: {
+
+            }
 
             focus: true
             wrapMode: TextEdit.Wrap

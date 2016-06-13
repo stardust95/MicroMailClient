@@ -26,6 +26,14 @@ Dialog {
 
     property alias passwordText: pwdField.text
 
+    property alias selectedProtocol: protocolMenu.selectedText
+
+    property alias sendHost: sendHostText.text
+
+    property alias receiveHost: receiveHostText.text
+
+    property alias requireSSL: requireSSLSwitch.checked
+
     property var receiveProtocol: [ "IMAP", "POP3" ]
 
     ColumnLayout {
@@ -54,7 +62,7 @@ Dialog {
                 anchors.centerIn: parent
                 width: parent.width
                 id: addressTextField
-                text: "Alex Nelson"
+                text: "375670450@qq.com"
             }
         }
 
@@ -69,58 +77,68 @@ Dialog {
                 anchors.centerIn: parent
                 width: parent.width
                 echoMode: TextInput.Password
-                text: ""
+                text: "sftkpahwbroabhjg"
+            }
+        }
+
+
+
+        ListItem.Standard {
+
+            Layout.preferredHeight: Units.dp(30)
+
+            content: RowLayout {
+                anchors.centerIn: parent
+                width: parent.width
+
+                Label {
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.preferredWidth: 0.3 * parent.width
+                    text: "SMTP"
+                }
+
+                TextField {
+                    id: sendHostText
+                    anchors.bottom: parent.bottom
+                    Layout.fillWidth: true
+                    placeholderText: "smtp.qq.com"
+                    text: "smtp.qq.com"
+                }
+
             }
         }
 
         ListItem.Standard {
-            action: Icon{
-                anchors.centerIn: parent
 
-            }
+            Layout.preferredHeight: Units.dp(30)
 
             content: RowLayout {
                 anchors.centerIn: parent
                 width: parent.width
 
                 MenuField {
+                    id: protocolMenu
                     Layout.alignment: Qt.AlignVCenter
-                    Layout.preferredWidth: 0.35 * parent.width
-
+                    Layout.preferredWidth: 0.3 * parent.width
                     model: receiveProtocol
                 }
 
                 TextField {
+                    id: receiveHostText
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: Units.dp(7)
+                    anchors.bottomMargin: Units.dp(15)
                     Layout.fillWidth: true
-//                    Layout.fillHeight: true
-                    text: "New York"
+                    placeholderText: "imap.qq.com"
+                    text: "imap.qq.com"
                 }
 
             }
         }
 
-        ListItem.Standard {
-            action: Icon {
-                anchors.centerIn: parent
-                name: "communication/email"
-            }
-
-            content: TextField {
-                anchors.centerIn: parent
-                width: parent.width
-
-                placeholderText: "Email"
-            }
-        }
-
         RowLayout{
+//            anchors.horizontalCenter: parent.horizontalCenter
 
-
-            anchors.horizontalCenter: parent.horizontalCenter
-
-            spacing: Units.dp(20)
+            spacing: Units.dp(30)
 
             Label{
                 text: "Require SSL"
@@ -128,7 +146,12 @@ Dialog {
 
             Switch{
                 id: requireSSLSwitch
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignHCenter
+                onClicked: {
+                    requireSSL = !requireSSL
+                    console.log("require ssl = " + requireSSL)
+                }
+                checked: true
             }
 
         }
@@ -139,23 +162,20 @@ Dialog {
         }
 
         RowLayout {
-            Layout.alignment: Qt.AlignRight
-            spacing: Units.dp(8)
 
-            anchors {
-                right: parent.right
-                margins: Units.dp(16)
-            }
+            Layout.alignment: Qt.AlignHCenter
+            spacing: Units.dp(8)
 
             Button {
                 id: cancelButton
                 text: "Cancel"
                 textColor: Theme.primaryColor
+                onClicked: close()
             }
 
             Button {
                 id: signInButton
-                text: "Done"
+                text: "Login"
                 textColor: Theme.primaryColor
             }
         }

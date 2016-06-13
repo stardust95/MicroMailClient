@@ -19,6 +19,7 @@
 #include <iterator>
 #include <string>
 #include <vector>
+#include <map>
 #include <fstream>
 
 using Poco::NumberFormatter;
@@ -142,24 +143,6 @@ namespace Poco {
             if (!sendCommand("NOOP", response, data)) throw NetException("The IMAP conection has been desconected", response);
         }
 
-        void IMAPClientSession::unsubscribe(const std::string& folder)
-        {
-            std::string response;
-            std::vector<std::string> data;
-            std::ostringstream oss;
-            oss << "UNSUBSCRIBE \"" << folder << "\"";
-            if (!sendCommand(oss.str(), response, data)) throw NetException("Subscribe error", response);
-        }
-
-        void IMAPClientSession::subscribe(const std::string& folder)
-        {
-            std::string response;
-            std::vector<std::string> data;
-            std::ostringstream oss;
-            oss << "SUBSCRIBE \"" << folder << "\"";
-            if (!sendCommand(oss.str(), response, data)) throw NetException("Unsubscribe error", response);
-        }
-
         bool IMAPClientSession::sendCommand(const std::string& command, std::string& response, std::vector<std::string>& data)
         {
             std::string tag;
@@ -171,13 +154,13 @@ namespace Poco {
 #endif
             while (true) {
                 _socket.receiveMessage(response);
-                if (response.substr(0, tag.length()+1) != (tag+" ")) {
+                if ( response.substr(0, tag.length()+1) != (tag+" ")) {
                     data.push_back(response);
                     response.clear();
                 }
                 else break;
             }
-            return response.substr(tag.length()+1, 2) == "OK";
+            return response.substr(tag.length()+1, 2) == "OK" ;
         }
 
 
@@ -307,10 +290,10 @@ namespace Poco {
 
             if (!sendCommand("DELETE \"" + folder + "\" *", response, data)) throw NetException("Can't delete folder", response);
         }
-
-        void IMAPClientSession::loadMessage (const std::string & folder, MessageInfo & info) {
-            std::string response, tmpdata;
-            std::vector<std::string> data, data1, paths;
+        void IMAPClientSession::loadMessage (const std::string & folder, MessageInfo & info, std::map<std::string, std::string> & paths) {
+            std::string response;
+            std::vector<std::string> data;
+//            std::map<std::string, std::string> paths;
 
 
             if ( !sendCommand ("SELECT \"" + folder + "\"", response, data) ) throw NetException ("Can't select from folder", response);
@@ -319,10 +302,6 @@ namespace Poco {
             loadText (info.uid, info.parts, "", "PLAIN" , info.text);
 
             loadParts (info.uid, info.parts, "", "APPLICATION", paths);
-
-            for(auto str : paths){
-                std::cout << str << "\n";
-            }
 
 //            sendCommand ("CLOSE", response, data1);
 
@@ -380,7 +359,7 @@ namespace Poco {
                         std::cout << s << ";";
                     }
 //                    std::cout << "Content: " << ss.str ()<< std::endl;
-                    text += ss.str ( );
+                    text +=  ss.str ( );
                     //throw NetException ("UNKNOWN CONTENT TRANSFER TYPE");
                 }
 
@@ -397,20 +376,25 @@ namespace Poco {
 
         }
 
-        void IMAPClientSession::loadParts (const std::string & uid, const PartInfo & info, const std::string & index, const std::string & _type, std::vector<std::string> & paths){
+        void IMAPClientSession::loadParts (const std::string & uid, const PartInfo & info, const std::string & index, const std::string & _type, std::map<std::string, std::string> & paths){
 
             auto & attrs = info.attributes;
 
             std::string type = _type;
 
             std::transform(type.begin (), type.end (), type.begin (), ::toupper );
-//            std::cout << attrs << "\n";
-            std::string response;
-            std::vector<std::string> result;
 
             if ( std::find (attrs.begin ( ), attrs.end ( ), type) != info.attributes.end ( ) ) {
                 std::cout << "attachment index = " << index << "\n";
-                paths.push_back (index);
+                for(auto attrs: info.childs){
+                    auto name_it = std::find( attrs.attributes.begin(), attrs.attributes.end(), "name" );
+//                    auto charset_it = std::find( attrs.attributes.begin(), attrs.attributes.end(), "charset" );
+                    if( name_it != attrs.attributes.end() ){
+                         paths[Utils::decoder ( *(name_it+1))] = index;         // decode the attachment name
+                    }
+
+//                    std::cout << outs << std::endl;
+                }
 
             }
 
@@ -419,8 +403,37 @@ namespace Poco {
                 loadParts(uid, info.childs.at(i), nextindex, type,  paths);
             }
 
-
         }
+
+         void IMAPClientSession::loadPartData(const std::string & uid, const PartInfo & info, const std::string & partIndex, std::string & data){
+            std::string response;
+            std::vector<std::string> result;
+            std::string tmp;
+            data.clear ();
+
+            if ( !sendCommand ("UID FETCH " + uid + " BODY.PEEK[" + partIndex + "]", response, result) )
+                throw NetException ("Cannot Load Mail Part Data", response);
+
+            for(auto str : result)
+                if( str.length() > 0 && str[0] != '*' )
+                    tmp += str;
+
+            auto attrs = info.childs.at(std::atoi(partIndex.c_str ())).attributes;
+
+            std::string encode;
+
+            if( std::find(attrs.begin(), attrs.end(), "BASE64") != attrs.end() ){
+                encode = "B";
+            }else{
+                encode = "Q";
+            }
+
+            Utils::decodeRFC2047 ("UTF-8?" + encode + "?" + tmp, tmp);     // construct a RFC2047 format
+
+            data = tmp;
+
+
+         }
 
 
         void IMAPClientSession::getMessages(const std::string& folder, std::vector<std::string>& uids, MessageInfoVec& messages)
@@ -440,7 +453,15 @@ namespace Poco {
 
             oss << " (RFC822.SIZE UID FLAGS INTERNALDATE BODYSTRUCTURE body.PEEK[header.fields (SUBJECT FROM CONTENT-TYPE TEXT X-PRIORITY TO CC)])";
 
-            if (!sendCommand(oss.str(), response, data)) throw NetException("Cannot fetch messages", response);
+            try{
+
+                if ( !sendCommand(oss.str(), response, data) ) throw NetException("Cannot fetch messages", response);
+
+            }
+            catch(const std::exception & e){
+                std::cout << e.what () << std::endl;
+                return ;
+            }
 
             response1.clear(); data1.clear();
 //            if (!sendCommand("CLOSE", response1, data1)) throw NetException("Cannot close folder", response);
@@ -489,7 +510,7 @@ namespace Poco {
                     if (j < data.size() - 2) {
                         // check if next lines begins with a SPACE, if so, merge with main line.
                         while (true && j<data.size()) {
-                            if (data[j + 1].substr(0, 1) == " ") {
+                            if ( data[j + 1].length() > 0 && data[j + 1].substr(0, 1) == " ") {
                                 r += data[++j];
                                 continue;
                             }

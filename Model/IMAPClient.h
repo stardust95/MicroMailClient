@@ -7,13 +7,14 @@
 #include "MailBody.h"
 #include "Attachment.h"
 
+
 #include <QDateTime>
 #include <QString>
 #include <QSharedPointer>
 
 #include <string>
 #include <vector>
-
+#include <sstream>
 
 
 typedef std::vector<Poco::Net::IMAPClientSession::FolderInfo> FolderInfoVec;
@@ -51,7 +52,7 @@ public:
         _session->listFolders("", folders);		// root is null
 
         for(auto f : folders){
-            _folders.push_back (QString::fromUtf8 (f.name.c_str()));
+            _folders.push_back (QString::fromStdString (f.name.c_str()));
         }
 
         return folders.size ();
@@ -74,7 +75,7 @@ public:
         for(int i=0; i<_mailList.size (); i++){
             for(int j=0; j<i; j++){
                 if( _mailList.at (i).uid == _mailList.at(j).uid )
-                    qDebug() << QString::fromUtf8( _mailList.at (i).subject.c_str()) << " and " << QString::fromUtf8 (_mailList.at (j).subject.c_str()) << " has the same uid, subject = " << QString::fromUtf8 (_mailList.at (i).subject.c_str()) << "\n";
+                    qDebug() << QString::fromStdString( _mailList.at (i).subject.c_str()) << " and " << QString::fromStdString (_mailList.at (j).subject.c_str()) << " has the same uid, subject = " << QString::fromStdString (_mailList.at (i).subject.c_str()) << "\n";
             }
         }
 
@@ -84,9 +85,40 @@ public:
 
     }
 
+    int getAttachment(const Attachment & attach, std::string & outdata) override{
+        std::string data;
+
+        try{
+            QStringList tokens = attach.getAccessCommand ().split (';');
+//            std::string uid = tokens[0].toStdString();
+            qDebug() << attach.getAccessCommand () << "\n";
+            auto info = _mailList.at ( tokens[0].toInt() );
+            _session->loadPartData (info.uid, info.parts, tokens[1].toStdString(), data);
+            outdata = data;
+            return 1;
+        }
+
+        catch( const std::exception & e ){
+            qDebug() << "Unable to get attachment, exception:" << e.what () << "\n";
+            return 0;
+        }
+
+//        std::cout << "write file " << paths.begin ()->first << ", " << data.length () << std::endl;
+//        std::ofstream output;
+//        output.open ("blink.pptx", ofstream::out | ofstream::binary);
+//        if( output.is_open () ){
+
+//            output.write (data.c_str (), data.length ());
+//            output.close ();
+//        }else{
+//            std::cout << "Unable to open file" << std::endl;
+//        }
+
+    }
+
     int getMailBodies(QList<MAILBODY_PTR> & result, int count ) override{
 
-        std::string partsPaths;
+        std::map<std::string, std::string> paths;
 
         int counter = 0;
 
@@ -95,37 +127,68 @@ public:
             if( counter >= count )
                 break;
 
-            auto info = _mailList.at ( _mailList.size () - _curListIndex - 1);
+            int actualIndex = _mailList.size () - _curListIndex - 1;
 
-//            if ( info.uid != "1577" )
-//                continue;
+            auto info = _mailList.at ( actualIndex );
 
-            _session->loadMessage (_selectedFolder.toStdString (), info);
+            _session->loadMessage (_selectedFolder.toStdString (), info, paths);
 
-            MAILBODY_PTR newmail = MAILBODY_PTR::create(QString::fromUtf8 (info.subject.c_str ()));
+            MAILBODY_PTR newmail = MAILBODY_PTR::create(QString::fromStdString (info.subject.c_str ()));
 
-            newmail->setContent (QString::fromUtf8 (info.text.c_str ()));
+            for( auto it = paths.begin (); it != paths.end (); it++){
 
-            newmail->setHTMLContent (QString::fromUtf8 (info.htmlText.c_str ()));
+                auto partInfo = info.parts.childs[std::atoi(it->second.c_str())];
 
-//            qDebug() << QString::fromUtf8 ( info.uid.c_str() ) << " content: " << newmail->getHTMLContent ()<< "\n";
+                if( partInfo.attributes[0] == "BOUNDARY" )
+                    break;
+
+                Attachment attach(partInfo.attributes[0],partInfo.attributes[1]);
+
+                attach.setFileName (QString::fromStdString (it->first));
+
+                attach.setFileSize ( std::atoi (partInfo.attributes[5].c_str()));
+
+                std::stringstream ss;
+                ss << actualIndex << ";" << it->second;
+
+                attach.setAccessCommand ( QString::fromStdString ( ss.str () ) );
+
+
+//                qDebug() << actualIndex << " || " << QString::fromStdString(it->second ) << " ||\n";
+                qDebug() << QString::fromStdString ( ss.str () ) << "\n";
+
+                newmail->addAttachment (attach);
+            }
+
+
+            newmail->setContent (QString::fromStdString (info.text.c_str ()));
+
+            newmail->setHTMLContent (QString::fromStdString (info.htmlText.c_str ()));
+
+//            qDebug() << QString::fromStdString ( info.uid.c_str() ) << " content: " << newmail->getHTMLContent ()<< "\n";
 
             std::string sender = info.from.find_last_of('<') != std::string::npos ?
                                 info.from.substr(info.from.find_last_of('<')+1, info.from.find_last_of('>') - info.from.find_last_of('<')-1) :
                                 info.from ;
 
-            newmail->setSender (QString::fromUtf8 (sender.c_str()));
+            newmail->setSender (QString::fromStdString (sender.c_str()));
 
-            newmail->addRecipient (QString::fromUtf8 (info.to.c_str()));
+            newmail->addRecipient (QString::fromStdString (info.to.c_str()));
 
-            newmail->setDateTime (QString::fromUtf8 (info.date.c_str()));
+            newmail->setDateTime (QString::fromStdString (info.date.c_str()));
 
             newmail->setIsread (false);
+
+
 
             result.push_back (newmail);
         }
 
         return counter;
+
+    }
+
+    int getAttachment(){
 
     }
 
@@ -148,10 +211,7 @@ public:
 
 private:
 
-
     Poco::Net::IMAPClientSession::MessageInfoVec _mailList;
-
-//    QMap<QString, Poco::Net::IMAPClientSession::MessageInfoVec> _mailList;
 
      SESSION_PTR _session;
 	

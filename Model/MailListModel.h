@@ -3,14 +3,17 @@
 
 #include "MailBody.h"
 #include "IMAPClient.h"
-#include "ReceiveMailClient.h"
-#include "SendMailClient.h"
 #include "POP3Client.h"
+#include "SMTPClient.h"
 #include "Utils.h"
+#include "Exception/MailGenerationException.h"
+#include "Exception/MailSendException.h"
+#include "Exception/MailReceiveException.h"
 
 
 #include <QAbstractItemModel>
 #include <QAbstractListModel>
+#include <QFile>
 #include <QVariant>
 #include <QList>
 #include <QHash>
@@ -116,6 +119,7 @@ namespace Models{
         }
 
 
+
         bool setData(const QModelIndex &index, const QVariant &value, int role) {
 
             if (index.row() >= 0 && index.row() < this->_mails.size()){
@@ -147,20 +151,30 @@ namespace Models{
                 return;
 
             postTo(this, [this, items]{
+
                 this->beginInsertRows (QModelIndex(), this->rowCount (), this->rowCount () + items.size () - 1);
 
                 for(auto item : items){
-
-                    std::ofstream output(item->getSubject ().toStdString ());
-                    output << item->getDateTime ().toStdString ()<< std::endl;
-                    output << item->getContent ().toStdString ()<< std::endl;
+                    qDebug() << "this->_mails.append (item)\n";
                     this->_mails.append (item);
                 }
 
                 this->endInsertRows ();
             });
+        }
 
+        void clearRows(){
 
+            if( _mails.size () == 0 )
+                return;
+
+            postTo(this, [this]{
+                this->beginResetModel ();
+
+                this->_mails.clear ();
+
+                this->endResetModel ();
+            });
         }
 
         Q_INVOKABLE QStringList getFolders( ){
@@ -229,6 +243,17 @@ namespace Models{
             return QVariant();
         }
 
+        Q_INVOKABLE QStringList getAttachments(int index){
+
+            QStringList result;
+            if( index >= 0 && index < _mails.length ()){
+                for(auto attach : _mails.at (index)->getAttachements ()){
+                    result.append (attach.getFileName ());
+                }
+            }
+            return result;
+        }
+
         Q_INVOKABLE QVariant getRecipients(int index){
             if( index >= 0 && index < _mails.length () ){
                 QString result;
@@ -256,14 +281,19 @@ namespace Models{
             return ;
         }
 
+
         bool doBuildMailList(int folderIndex){                // <= QtConcurrent::run()
 
             qDebug() << folderIndex << ", " << this->getFolders ().size() << "\n";
 
+            this->clearRows ();
+
+            this->setProgress (0);
+
+            int count = 0;
+
             if( folderIndex >= 0 && folderIndex < this->getFolders ().size ()
                     && this->getFolders ().at (folderIndex) != this->_receiveClient->getSelectedFolder() ){
-
-                int cur_count = _mails.length ();
 
                 auto folder = this->getFolders ().at (folderIndex);             // in login function has got folders
 
@@ -273,14 +303,13 @@ namespace Models{
 
                 MAILBODY_PTR_QLIST tmplist;
 
-
                 qDebug() << "do Build Mail List in folder " << folder << "\n";
 
                 while( _receiveClient->getMailBodies ( tmplist, 1) > 0 ){      // if there exists mails not loaded
 
                     qDebug() << "_receiveClient->getMailBodies ( tmplist, 1) > 0" << "\n";
 
-                    this->beginResetModel ();
+//                    this->beginResetModel ();
 
                     this->appendRows (tmplist);
 
@@ -288,12 +317,18 @@ namespace Models{
 
                     qDebug() << "progress set to " << this->getProgress () << "\n";
 
-                    this->endResetModel ();
+//                    this->endResetModel ();
 
                     tmplist.clear ();
+
+                    if( ++count > 2 )
+                        break;
+
                 }
 
-                _foldersMap[folder] = tmplist;
+                _foldersMap[folder] = _mails;
+
+//                downloadAttach (0, 0, "C:/");
 
                 return true;
             }
@@ -301,44 +336,94 @@ namespace Models{
             return false;
        }
 
+	Q_INVOKABLE void setProtocol(QString p){
+	    if( p == "IMAP" ){
+		_receiveProtocol = Utils::ProtocolType::IMAP;
+	    }else if ( p == "POP3" ){
+		_receiveProtocol = Utils::ProtocolType::POP3;
+	    }else{
+		throw MailGenerationException("Unknown Receive Protocol");
+	    }
+	}
 
+    Q_INVOKABLE bool downloadAttach(int mailIndex, int attachIndex, QString path){
+        std::string data;
 
-        Q_INVOKABLE bool login(QString user, QString passwd, QString host, QString port){
+        try{
+
+            if( mailIndex >= _mails.size () )
+                throw MailReceiveException("mailIndex >= _mails.size ()");
+
+            Attachment attach = _mails.at (mailIndex)->getAttachment (attachIndex);
+
+            qDebug() << "in downloadAttach, name = " << attach.getFileName () << "\n";
+
+            if( !_receiveClient->getAttachment ( attach, data ) )
+                return false;
+
+            std::ofstream output;
+            output.open (attach.getFileName ().toStdString (), std::ofstream::out | std::ofstream::binary);
+
+            if( output.is_open () ){
+                output.write (data.c_str (), data.length ());
+                output.close ();
+            }else{
+                throw MailReceiveException("downloadAttach: Unable to open file " + attach.getFileName ().toStdString ());
+            }
+
+            system (attach.getFileName ().toStdString ().c_str ());
+
+            return true;
+        }
+
+        catch( const std::exception & e ){
+            qDebug() << "MailListModel::downloadAttach Exception " << QString(e.what ()) << "\n";
+        }
+
+        return false;
+
+    }
+
+	Q_INVOKABLE bool login(QString user, QString passwd, QString sendHost, QString receiveHost, bool requireSSL){
 /*
         Login and retrive all mails within folders.
 */
-            try{
 
-    //            if( _receiveProtocol == Utils::ProtocolType::IMAP )
-                    _receiveClient = QSharedPointer<IMAPClient>::create(host, port);
-                // _sendClient = MAILCLIENT_PTR::create(host, port);
+    try{
 
-                if( _receiveClient->login(user, passwd,true) ){          // if login success, retrive mails
-    //            if( _sendClient->login (user, passwd) && _receiveClient->login (user,  passwd) ){
+		_sendClient = QSharedPointer<SMTPClient>::create(sendHost, requireSSL ? Utils::Port_SMTP_SSL() : Utils::Port_SMTP() );
 
-                    // initialize the user info
-                    _user = ACCOUNT_PTR::create();
+		if( _receiveProtocol == Utils::ProtocolType::IMAP )
+		    _receiveClient = QSharedPointer<IMAPClient>::create(receiveHost, requireSSL? Utils::Port_IMAP_SSL() : Utils::Port_IMAP() );
+		else if( _receiveProtocol == Utils::ProtocolType::POP3 )
+		    _receiveClient = QSharedPointer<POP3Client>::create(receiveHost, requireSSL? Utils::Port_POP3_SSL() : Utils::Port_POP3() );
 
-                    // get mail folders
-                    QList<QString> folders;
-                    _receiveClient->getFolders (folders);          // Assume that POP3 only has one folder "INBOX"
+		if( _receiveClient->login(user, passwd,requireSSL) && _sendClient->login (user, passwd, requireSSL) ) {          // if login success, retrive mails
 
-                    for(auto folder: folders){
-                        MAILBODY_PTR_QLIST tmp;
-                        this->_foldersMap.insert (folder, tmp);
-                    }
-                    emit(foldersChanged ());
+                // initialize the user info
+                _user = ACCOUNT_PTR::create();
 
-                    // initially load the mails in first folder
-    //                if( folders.size () > 0 )
-    //                    QtConcurrent::run(this, &MailListModel::doBuildMailList, 0);
+                // get mail folders
+                QList<QString> folders;
+                _receiveClient->getFolders (folders);          // Assume that POP3 only has one folder "INBOX"
 
-                    return true;
+                for(auto folder: folders){
+                    MAILBODY_PTR_QLIST tmp;
+                    this->_foldersMap.insert (folder, tmp);
                 }
+
+                emit(foldersChanged ());
+
+                // initially load the mails in first folder
+//                if( folders.size () > 0 )
+//                    QtConcurrent::run(this, &MailListModel::doBuildMailList, 0);
+
+                return true;
             }
-            catch( ... ){
-                qDebug() << "MailListModel::login Exception " << "\n";
-            }
+        }
+	    catch( std::exception & e ){
+                qDebug() << "MailListModel::login Exception " << QString(e.what ()) << "\n";
+        }
 
             return false;
         }
@@ -349,7 +434,7 @@ namespace Models{
 
         ACCOUNT_PTR _user;
 
-        QMap<QString, MAILBODY_PTR_QLIST> _foldersMap;
+        QMap<QString, MAILBODY_PTR_QLIST> _foldersMap;      // current selected folder stored in _receiveClient
 
         SENDMAILCLIENT_PTR _sendClient;
 

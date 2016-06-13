@@ -14,15 +14,12 @@ Item{
 
 //        property string mailWebView: mailWebView
 
+        property string attachmentColor: Palette.colors["blue"]["200"]
+
         function loadHtml(content){
             mailWebView.loadHtml(content)
             console.log("in function loadHtml:"+content )
         }
-
-//        Component.onCompleted: {
-//            console.log("Component.onComplete:" +htmlContent)
-//            mailWebView.loadHtml(htmlContent)
-//        }
 
         ColumnLayout{
 
@@ -118,7 +115,41 @@ Item{
 
             Label{
                 text : mailListModel.getRecipients(selectedMailIndex);
+            }
 
+            RowLayout{
+
+                id: attachmentsRow
+
+                Layout.fillWidth: true
+
+                height: Units.dp(50)
+
+                Repeater{
+                    id: attachmentsRepeater
+
+                    model: mailListModel.getAttachments(selectedMailIndex)
+
+                    delegate: Component{
+
+                        MyButton{
+                            source: "/icons/file"
+
+                            backgroundColor: attachmentColor
+
+                            height: parent.height
+
+                            label: model.modelData
+
+                            onClicked: {
+                                mailListModel.downloadAttach(selectedMailIndex, index, ".");
+//                                console.log( "selectedMailIndex" + selectedMailIndex )
+//                                console.log(" index" + index)
+                            }
+                        }
+
+                    }
+                }
             }
 
             WebEngineView{

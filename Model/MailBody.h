@@ -3,6 +3,7 @@
 
 #include "Attachment.h"
 #include "Account.h"
+#include "Exception/MailReceiveException.h"
 
 #include <QDateTime>
 #include <QVariant>
@@ -97,11 +98,21 @@ public:
         _recipients.push_back (r);
     }
 
-//    QVector<Attachment> GetAttachements(){
-//        return attachements;
-//    }
+    QList<Attachment> getAttachements(){
+        return _attachements;
+    }
 
-//    void addAttachment()
+    Attachment getAttachment(int index){
+        if( index >= 0 && index < _attachements.size () )
+            return _attachements.at (index);
+        else
+            throw MailReceiveException("Attachment Index Invalid");
+        return nullptr;
+    }
+
+    void addAttachment(const Attachment & attach){
+        _attachements.append (attach);
+    }
 
 private:
 
@@ -119,7 +130,7 @@ private:
 
     bool _isread;
 
-//    QVector<Attachment> _attachements;
+    QList<Attachment> _attachements;
 
 };
 

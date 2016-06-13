@@ -28,13 +28,17 @@ ApplicationWindow {
 
     property string contentFont: "微软雅黑"
 
-    property string host : "pop.qq.com";
+    property string receiveHost : "pop.qq.com";
+
+    property string sendHost: "smtp.qq.com";
 
     property string user : "375670450@qq.com";
 
     property string passwd : "sftkpahwbroabhjg";
 
-    property string port: "110";
+    property bool requireSSL: false
+
+//    property string port: "110";
 
     theme {
         primaryColor: "blue"
@@ -74,7 +78,6 @@ ApplicationWindow {
                 }
                onClicked: {
                    menuSidebar.expanded = false
-
                }
             }
 
@@ -190,7 +193,7 @@ ApplicationWindow {
         //                    model: temp
                             Layout.fillWidth: true
                             delegate: foldersListDelegate
-                            onModelChanged: console.log("model = " + model)
+//                            onModelChanged: console.log("model = " + model)
                         }
 
                     }
@@ -282,6 +285,13 @@ ApplicationWindow {
 
                     delegate:mailListDelegate
 
+                    Label {
+                        visible: mailListModel.progress === 0
+                        anchors.centerIn : parent
+                        text: "empty"
+                        font.pixelSize: Units.dp(20)
+                    }
+
                     model: mailListModel
 
                     header : Rectangle{
@@ -350,7 +360,7 @@ ApplicationWindow {
                                 }
                                 onClicked: {
                                     console.log("refresh button onclick")
-                                    mailListModel.login(user, passwd, host, port)
+                                    mailListModel.login(user, passwd, receiveHost, port)
                                 }
 
                             }
@@ -389,6 +399,9 @@ ApplicationWindow {
                     section.property: "mail_datetime"        // should be datetime
                     section.criteria: ViewSection.FullString
                     section.delegate: mailListSectionDelegate
+
+
+
                 }
 
         /*
@@ -515,7 +528,9 @@ ApplicationWindow {
                     console.log("mailListColumn.x = " + mailListColumn.x)
                     console.log("mailListColumn.width = " + mailListColumn.width)
                 }
+
                 function changeMail(index) {
+                    setSource(Qt.resolvedUrl("MailView.qml"))
                     item.loadHtml(mailListModel.getHTMLContent(index))
                 }
 
@@ -531,7 +546,19 @@ ApplicationWindow {
 
                 visible: false
 
-                signInButton.onClicked: mailListModel.login(user, passwd, host, port)
+                signInButton.onClicked: {
+                    user = addressText
+                    passwd = passwordText
+                    sendHost = loginDialog.sendHost
+                    receiveHost = loginDialog.receiveHost
+                    requireSSL = loginDialog.requireSSL
+
+                    mailListModel.setProtocol( loginDialog.selectedProtocol )
+                    mailListModel.login(user, passwd, sendHost, receiveHost, requireSSL)
+
+                    loginDialog.close()
+
+                }
 
                 onClosed: visible = false
             }

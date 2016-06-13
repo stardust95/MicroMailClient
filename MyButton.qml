@@ -15,10 +15,13 @@ Button{
             source: ""
             scale: iconScale
         }
+
         Label{
             id : btnLabel
             anchors.verticalCenter: parent.verticalCenter
             text: text
+            wrapMode: Text.Wrap
+
         }
 
     }

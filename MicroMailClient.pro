@@ -39,4 +39,8 @@ HEADERS += \
     Model/ReceiveMailClient.h \
     Model/SendMailClient.h \
     Model/SMTPClient.h \
-    Model/POP3Client.h
+    Model/POP3Client.h \
+    Exception/MailClientException.h \
+    Exception/MailGenerationException.h \
+    Exception/MailReceiveException.h \
+    Exception/MailSendException.h

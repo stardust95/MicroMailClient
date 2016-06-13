@@ -140,6 +140,13 @@ public:
         SMTP, POP3, IMAP
     };
 
+    static QString Port_POP3(){ return "110"; }
+    static QString Port_POP3_SSL(){ return "995"; }
+    static QString Port_SMTP(){ return "25"; }
+    static QString Port_SMTP_SSL(){ return "994"; }
+    static QString Port_IMAP(){ return "143"; }
+    static QString Port_IMAP_SSL(){ return "993"; }
+
     // GB2312转UTF8
     static std::string GB2312ToUTF8(const char* lpszGb32Text)
     {
@@ -205,7 +212,9 @@ public:
 
         if ( encoding[0] == 'B' ) {	// Base64编码
             Base64Decoder decode (iss);
-            while ( ( c = decode.get ( ) ) != -1 ) {
+//            while ( ( c = decode.get ( ) ) != -1 ) {
+            while( decode.good ()){
+                c = decode.get ();
                 tmp += c;
             }
         } else if ( encoding[0] == 'Q' ) {		// Quote-Printable编码
@@ -222,8 +231,8 @@ public:
         // 标题转换字符集
         if ( charset != charset_to ) {
             std::transform(charset.begin (), charset.end (), charset.begin (), ::toupper);
-            if( charset == "GB2312" ){
-                std::cout << "charset == gb2312" << std::endl;
+            if( charset.substr (0,2) == "GB" ){
+                std::cout << "charset =" << charset << std::endl;
                 try{
                     outs = GB2312ToUTF8 (tmp.c_str ());
                 }catch( std::exception & e ){

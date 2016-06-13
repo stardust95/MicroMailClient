@@ -48,7 +48,7 @@
         <file alias="send">icons/send.svg</file>
         <file>icons/sort.svg</file>
         <file>icons/text_format.svg</file>
-        <file>icons/unarchive.svg</file>
+        <file alias="file">icons/unarchive.svg</file>
         <file alias="undo">icons/undo.svg</file>
         <file>icons/weekend.svg</file>
         <file alias="folder">icons/folder.svg</file>

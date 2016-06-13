@@ -26,10 +26,12 @@ private:
     Utils::MediaType _attachmentType;
     qint64 _fileSize;
     qint64 _hasDownloaded;
+
     QString _fileName;
     QString _filePath;
     downloadState _state;
     QString _accessCommand;
+
     fstream _fileStream;
 
     const static qint64 _fileMaxSize = 1024*1024;
@@ -64,6 +66,17 @@ public:
         _hasDownloaded = 0;
     }
 
+    Attachment(const Attachment & attach):
+     _attachmentType(attach.getAttachmentType ()){
+        _fileSize = attach._fileSize;
+        _hasDownloaded = attach._hasDownloaded;
+
+        _fileName = attach._fileName;
+        _filePath = attach._filePath;
+        _state = attach._state;
+        _accessCommand = attach._accessCommand;
+    }
+
     Utils::MediaType getAttachmentType() const {
         return _attachmentType;
     }
@@ -81,7 +94,12 @@ public:
     }
 
     void setFileName(const QString& i) {
-        _fileName = i;
+        QString val;
+        for(auto it = i.begin (); it != i.end (); it++){
+            if( it->isPrint () )
+                val += *it;
+        }
+        _fileName = val;
     }
 
     QString getFilePath() const {

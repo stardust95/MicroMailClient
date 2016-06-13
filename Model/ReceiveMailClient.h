@@ -21,6 +21,8 @@ public:
 		
         virtual int selectFolder(const QString & ) = 0;
 
+        virtual int getAttachment(const Attachment & attach, std::string & outdata) = 0;
+
         virtual QString getSelectedFolder() final {           // final ==> cannot be override
             return _selectedFolder;
         }

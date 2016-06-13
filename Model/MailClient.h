@@ -18,7 +18,7 @@ public:
            TCPConnectoin, SSLConnection, TLSConnection
         };
 
-        virtual bool login(QString, QString, bool ) = 0;
+        virtual bool login(QString, QString, bool) = 0;
 
 		virtual int getTimeout() = 0;
 		

@@ -12,7 +12,7 @@ class SendMailClient : public MailClient{
 
 public:
 
-		virtual void sendMailBodies(const MAILBODY_PTR_QLIST &, const QList<QString> &) = 0;
+        virtual bool sendMailBodies(const MAILBODY_PTR &) = 0;
 
 protected:
 
