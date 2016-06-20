@@ -10,6 +10,7 @@
 #include <Poco/Net/MailRecipient.h>
 #include <Poco/Net/NetException.h>
 #include <Poco/Net/SMTPClientSession.h>
+#include <Poco/Net/FilePartSource.h>
 
 #include <QDateTime>
 #include <QString>
@@ -45,30 +46,37 @@ public:
     bool sendMailBodies(const MAILBODY_PTR & MailBody) override{
 //        MAILBODY_PTR newMail = MAILBODY_PTR::create();
         Poco::Net::MailMessage newMail;
+
         newMail.setSender(MailBody->getSender().toStdString());
 
-        for (auto i = MailBody->getRecipients().begin(); i != MailBody->getRecipients().end(); i++){
-            Poco::Net::MailRecipient mailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT,(*i).toStdString());
+        auto list = MailBody->getRecipients();
+
+        for (auto i = list.begin(); i != list.end(); i++){
+            std::cout << i->toStdString () << std::endl;
+            Poco::Net::MailRecipient mailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, i->toStdString());
             newMail.addRecipient(mailRecipient);
         }
 
         newMail.setSubject(MailBody->getSubject().toStdString());
-//        newMail->setContentType("text/plain; charset=UTF-8");
+        newMail.setContentType("text/html; charset=UTF-8");
 
         newMail.setContent(MailBody->getHTMLContent().toStdString());
-//        newMail->setHTMLContent(MailBody->getHTMLContent());
 
-        Poco::Timestamp dataTime;
-//        newMail.setDate();
+        for(auto attach: MailBody->getAttachements ()){
+            newMail.addAttachment (attach.getFileName ().toStdString (), new Poco::Net::FilePartSource(attach.getFilePath ().toStdString ()));
+        }
+
+//        newMail->setHTMLContent(MailBody->getHTMLContent());
 
         newMail.setDate(Poco::Timestamp::fromEpochTime( QDateTime::fromString(MailBody->getDateTime()).toTime_t()));
 
         try{
             _session->sendMessage(newMail);
             return true;
-//            cout<<"Message successfully sent" << endl;
+            qDebug() <<"Message successfully sent\n" ;
         }
         catch(Poco::Net::SMTPException &e){
+            std::cout << e.what () << std::endl;
             return false;
         }
     }

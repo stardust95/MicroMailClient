@@ -12,9 +12,15 @@ Item{
 
         id: mailView
 
-//        property string mailWebView: mailWebView
+//        visible: selectedMailIndex >= 0
+
+        visible: true
 
         property string attachmentColor: Palette.colors["blue"]["200"]
+
+//        property alias unreadButton: markAsUnreadButton
+
+//        property alias replyButton: replyButton
 
         function loadHtml(content){
             mailWebView.loadHtml(content)
@@ -55,6 +61,7 @@ Item{
                     label: "Reply"
                     source: "/icons/reply"
                     Layout.preferredWidth: Units.dp(label.length*8 + 60)
+                    onClicked: pageLoader.newMail()
 
                 }
 
@@ -124,6 +131,8 @@ Item{
                 Layout.fillWidth: true
 
                 height: Units.dp(50)
+
+                visible: attachmentsRepeater.count > 0
 
                 Repeater{
                     id: attachmentsRepeater

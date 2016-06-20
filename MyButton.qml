@@ -21,7 +21,7 @@ Button{
             anchors.verticalCenter: parent.verticalCenter
             text: text
             wrapMode: Text.Wrap
-
+            width: parent.width
         }
 
     }

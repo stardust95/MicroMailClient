@@ -54,7 +54,10 @@ public:
     }
 
     QString getHTMLContent(){
-        return _htmlContent;
+        if( _htmlContent.length () > 0 )
+            return _htmlContent;
+        else
+            return _content;
     }
 
     void setHTMLContent (QString c){

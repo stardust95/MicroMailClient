@@ -102,18 +102,6 @@ public:
             qDebug() << "Unable to get attachment, exception:" << e.what () << "\n";
             return 0;
         }
-
-//        std::cout << "write file " << paths.begin ()->first << ", " << data.length () << std::endl;
-//        std::ofstream output;
-//        output.open ("blink.pptx", ofstream::out | ofstream::binary);
-//        if( output.is_open () ){
-
-//            output.write (data.c_str (), data.length ());
-//            output.close ();
-//        }else{
-//            std::cout << "Unable to open file" << std::endl;
-//        }
-
     }
 
     int getMailBodies(QList<MAILBODY_PTR> & result, int count ) override{
@@ -178,8 +166,6 @@ public:
             newmail->setDateTime (QString::fromStdString (info.date.c_str()));
 
             newmail->setIsread (false);
-
-
 
             result.push_back (newmail);
         }

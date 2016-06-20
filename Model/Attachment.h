@@ -90,7 +90,10 @@ public:
     }
 
     QString getFileName() const {
-        return _fileName;
+        if( _fileName.length () > 0 )
+            return _fileName;
+        else if ( _filePath.length () > 0 )
+            return QString::fromStdString (_filePath.toStdString ().substr ( _filePath.lastIndexOf ('.')));
     }
 
     void setFileName(const QString& i) {

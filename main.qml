@@ -38,7 +38,7 @@ ApplicationWindow {
 
     property bool requireSSL: false
 
-//    property string port: "110";
+    property var uploadAttach: []
 
     theme {
         primaryColor: "blue"
@@ -390,7 +390,11 @@ ApplicationWindow {
 
                             value: mailListModel.progress
 
-        //                    onValueChanged: console.log("valueChanged:"+value)
+                            onValueChanged: {
+                                if( mailListProgressBar.value === 1 ){
+                                    snackbar.open("Load mails completely")
+                                }
+                            }
 
                         }
 
@@ -445,7 +449,6 @@ ApplicationWindow {
 
                             pageLoader.changeMail(index)
 
-//                            pageLoader.item.mailWebView.loadHtml(mailListModel.getHTMLContent(index));
                         }
 
                        Rectangle{
@@ -518,10 +521,11 @@ ApplicationWindow {
 
                 width: parent.width - mailListColumn.x - mailListColumn.width       // How to simplify?
 
-                //                visible: selectedMailIndex >= 0
+//                visible: selectedMailIndex >= 0
 
-                source: Qt.resolvedUrl("NewMailEdit.qml")
-//                source: Qt.resolvedUrl("MailView.qml")
+//                source: Qt.resolvedUrl("NewMailEdit.qml")
+
+                source: Qt.resolvedUrl("MailView.qml")
 
                 function test() {
                     console.log("parent.width = " + parent.width)
@@ -537,6 +541,7 @@ ApplicationWindow {
                 function newMail(){
                     console.log("in Function newMail")
                     setSource(Qt.resolvedUrl("NewMailEdit.qml"))
+
                 }
 
             }
@@ -557,13 +562,18 @@ ApplicationWindow {
                     mailListModel.login(user, passwd, sendHost, receiveHost, requireSSL)
 
                     loginDialog.close()
-
+                    snackbar.open("Login Successfully")
                 }
 
                 onClosed: visible = false
             }
 
         }   // BackgroundRectangle
+    }
+
+    Snackbar{
+        id: snackbar
+
     }
 
 }

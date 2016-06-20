@@ -53,7 +53,11 @@ namespace Models{
 
         explicit MailListModel(QObject * parent = 0) : QAbstractListModel(parent) {
             _receiveProtocol = Utils::ProtocolType::IMAP;
+            _sendClient.clear ();
+            _receiveClient.clear ();
             _progress = false;
+            _user.clear ();
+
         }
 
         ~MailListModel(){
@@ -297,8 +301,6 @@ namespace Models{
 
                 auto folder = this->getFolders ().at (folderIndex);             // in login function has got folders
 
-//                QString folder = "INBOX";
-
                 int total = _receiveClient->selectFolder(folder);
 
                 MAILBODY_PTR_QLIST tmplist;
@@ -321,14 +323,9 @@ namespace Models{
 
                     tmplist.clear ();
 
-                    if( ++count > 2 )
-                        break;
-
                 }
 
                 _foldersMap[folder] = _mails;
-
-//                downloadAttach (0, 0, "C:/");
 
                 return true;
             }
@@ -391,17 +388,25 @@ namespace Models{
 
     try{
 
-		_sendClient = QSharedPointer<SMTPClient>::create(sendHost, requireSSL ? Utils::Port_SMTP_SSL() : Utils::Port_SMTP() );
+        // initialize the user info
+        _user = ACCOUNT_PTR::create();
 
-		if( _receiveProtocol == Utils::ProtocolType::IMAP )
+		_sendClient = QSharedPointer<SMTPClient>::create(sendHost, requireSSL ? Utils::Port_SMTP_SSL() : Utils::Port_SMTP() );
+        _user->setSMTPHost (sendHost);
+
+        if( _receiveProtocol == Utils::ProtocolType::IMAP ){
 		    _receiveClient = QSharedPointer<IMAPClient>::create(receiveHost, requireSSL? Utils::Port_IMAP_SSL() : Utils::Port_IMAP() );
-		else if( _receiveProtocol == Utils::ProtocolType::POP3 )
+            _user->setIMAPHost (receiveHost);
+        }
+        else if( _receiveProtocol == Utils::ProtocolType::POP3 ){
 		    _receiveClient = QSharedPointer<POP3Client>::create(receiveHost, requireSSL? Utils::Port_POP3_SSL() : Utils::Port_POP3() );
+            _user->setPOP3Host (receiveHost);
+        }
+        _user->setPassWord (passwd);
+        _user->setRequireSSL (requireSSL);
+        _user->setUserName (user);
 
 		if( _receiveClient->login(user, passwd,requireSSL) && _sendClient->login (user, passwd, requireSSL) ) {          // if login success, retrive mails
-
-                // initialize the user info
-                _user = ACCOUNT_PTR::create();
 
                 // get mail folders
                 QList<QString> folders;
@@ -426,6 +431,44 @@ namespace Models{
         }
 
             return false;
+        }
+
+        bool doSendMail(QString recipient, QString subject, QString content, QStringList attachments={}){
+
+            MAILBODY_PTR mail = MAILBODY_PTR::create();
+
+            mail->setContent (content);
+
+            mail->setSubject (subject);
+
+            mail->addRecipient (recipient);
+
+            mail->setSender (_user->getUserName ());
+
+            for(auto filepath : attachments ){
+                QString path = filepath.startsWith ("file:///") ? filepath.split ("///").at (1): filepath;
+                Attachment attach("application", "octet-stream");
+                attach.setFilePath (path);
+                mail->addAttachment (attach);
+                std::cout << path.toStdString () << std::endl;
+            }
+
+            try{
+                _sendClient->sendMailBodies (mail);
+            }
+            catch(const std::exception & e){
+                qDebug() << "sendMail: " << QString::fromStdString (e.what ()) << "\n";
+            }
+
+            return true;
+        }
+
+        Q_INVOKABLE void sendMail(QString recipient, QString subject, QString content, QStringList attachments = {}){
+
+            if( !_user.isNull () )
+                QtConcurrent::run(this, &MailListModel::doSendMail, recipient, subject, content, attachments);
+
+            return ;
         }
 
     private:
