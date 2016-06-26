@@ -59,6 +59,5 @@
 
 	配置说明: http://www.heilqt.com/topic/56b010459e5a7aac4bc63b42
 
-7. 数据库采用[MongoDB](https://www.mongodb.com/)
 
 ---------

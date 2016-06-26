@@ -294,8 +294,6 @@ namespace Models{
 
             this->setProgress (0);
 
-            int count = 0;
-
             if( folderIndex >= 0 && folderIndex < this->getFolders ().size ()
                     && this->getFolders ().at (folderIndex) != this->_receiveClient->getSelectedFolder() ){
 

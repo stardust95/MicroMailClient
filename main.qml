@@ -32,9 +32,9 @@ ApplicationWindow {
 
     property string sendHost: "smtp.qq.com";
 
-    property string user : "375670450@qq.com";
+    property string user : "";
 
-    property string passwd : "sftkpahwbroabhjg";
+    property string passwd : "";
 
     property bool requireSSL: false
 
@@ -519,13 +519,15 @@ ApplicationWindow {
 
                 height: parent.height
 
+                visible: isLargeWindow
+
                 width: parent.width - mailListColumn.x - mailListColumn.width       // How to simplify?
 
 //                visible: selectedMailIndex >= 0
 
 //                source: Qt.resolvedUrl("NewMailEdit.qml")
 
-                source: Qt.resolvedUrl("MailView.qml")
+//                source: Qt.resolvedUrl("MailView.qml")
 
                 function test() {
                     console.log("parent.width = " + parent.width)
