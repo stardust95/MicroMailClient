@@ -11,6 +11,7 @@
 #include <Poco/Net/NetException.h>
 #include <Poco/Net/SMTPClientSession.h>
 #include <Poco/Net/FilePartSource.h>
+#include <Poco/Net/StringPartSource.h>
 
 #include <QDateTime>
 #include <QString>
@@ -46,7 +47,9 @@ public:
     bool sendMailBodies(const MAILBODY_PTR & MailBody) override{
 //        MAILBODY_PTR newMail = MAILBODY_PTR::create();
         Poco::Net::MailMessage newMail;
+        Poco::Net::MediaType type("multipart", "related");
 
+        type.setParameter ("type","text/html");
         newMail.setSender(MailBody->getSender().toStdString());
 
         auto list = MailBody->getRecipients();
@@ -58,9 +61,10 @@ public:
         }
 
         newMail.setSubject(MailBody->getSubject().toStdString());
-        newMail.setContentType("text/html; charset=UTF-8");
 
-        newMail.setContent(MailBody->getHTMLContent().toStdString());
+        newMail.setContentType (type);
+
+        newMail.addPart ("", new Poco::Net::StringPartSource(MailBody->getHTMLContent().toStdString(), "text/html"), Poco::Net::MailMessage::CONTENT_INLINE, Poco::Net::MailMessage::ENCODING_QUOTED_PRINTABLE);
 
         for(auto attach: MailBody->getAttachements ()){
             newMail.addAttachment (attach.getFileName ().toStdString (), new Poco::Net::FilePartSource(attach.getFilePath ().toStdString ()));
